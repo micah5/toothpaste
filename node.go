@@ -1,7 +1,6 @@
 package toothpaste
 
 import (
-	"fmt"
 	"github.com/micah5/earcut-3d"
 )
 
@@ -22,19 +21,25 @@ func NewTaggedNode(tag string, outer *Face3D, inner ...*Face3D) *Node {
 }
 
 func (n *Node) Extrude(height float64, tags ...string) {
+	// Negate the normal vector components to flip the direction
+	normal := n.Outer.Normal()
+	normal.Mul(-1)
+
+	// Create the top face
+	top := n.Outer.Copy()
+	top.Translate(normal.X*height, normal.Y*height, normal.Z*height)
+	holes := make([]*Face3D, 0)
+	for _, f := range n.Inner {
+		hole := f.Copy()
+		hole.Translate(normal.X*height, normal.Y*height, normal.Z*height)
+		holes = append(holes, hole)
+	}
+	topN := NewTaggedNode(getTag(0, tags), top, holes...)
+
+	// Create the sides
+	var cur *Node = n
 	faces := n.Faces()
-	for _, f := range faces {
-		// Negate the normal vector components to flip the direction
-		normal := f.Normal()
-		normal.Mul(-1)
-
-		// Create the top face
-		top := f.Copy()
-		top.Translate(normal.X*height, normal.Y*height, normal.Z*height)
-		topN := NewTaggedNode(getTag(0, tags), top)
-
-		// Create the sides
-		var cur *Node = n
+	for k, f := range faces {
 		for i := range f.Vertices {
 			i1, i2 := i, (i+1)%len(f.Vertices)
 			v1 := f.Vertices[i1]
@@ -47,15 +52,19 @@ func (n *Node) Extrude(height float64, tags ...string) {
 					v1,
 				},
 			}
+			if k != 0 {
+				sideFace.Flip()
+			}
 			newNode := NewTaggedNode(getTag(i+1, tags), sideFace)
 			cur.Next = newNode
 			newNode.Prev = cur
 			cur = newNode
 		}
-		top.Flip()
-		cur.Next = topN
-		topN.Prev = cur
 	}
+	cur.Next = topN
+	topN.Prev = cur
+	cur = topN
+	top.Flip()
 }
 
 func (n *Node) Faces() []*Face3D {
@@ -147,7 +156,6 @@ func (n *Node) Centroid() *Vertex3D {
 func (n *Node) Center() {
 	ns := n.Nodes()
 	centroid := ns.Centroid()
-	fmt.Println(centroid)
 	ns.Translate(-centroid.X, -centroid.Y, -centroid.Z)
 }
 
