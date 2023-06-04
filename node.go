@@ -1,6 +1,7 @@
 package toothpaste
 
 import (
+	"fmt"
 	"github.com/micah5/earcut-3d"
 )
 
@@ -38,12 +39,14 @@ func (n *Node) Extrude(height float64, tags ...string) {
 			i1, i2 := i, (i+1)%len(f.Vertices)
 			v1 := f.Vertices[i1]
 			v2 := f.Vertices[i2]
-			sideFace := NewFace3D(
-				top.Vertices[i1].X, top.Vertices[i1].Y, top.Vertices[i1].Z,
-				top.Vertices[i2].X, top.Vertices[i2].Y, top.Vertices[i2].Z,
-				v2.X, v2.Y, v2.Z,
-				v1.X, v1.Y, v1.Z,
-			)
+			sideFace := &Face3D{
+				Vertices: []*Vertex3D{
+					top.Vertices[i1],
+					top.Vertices[i2],
+					v2,
+					v1,
+				},
+			}
 			newNode := NewTaggedNode(getTag(i+1, tags), sideFace)
 			cur.Next = newNode
 			newNode.Prev = cur
@@ -61,8 +64,8 @@ func (n *Node) Faces() []*Face3D {
 	return faces
 }
 
-func (n *Node) Nodes() []*Node {
-	nodes := []*Node{n}
+func (n *Node) Nodes() Nodes {
+	nodes := Nodes{n}
 	cur := n.Next
 	for cur != nil {
 		nodes = append(nodes, cur)
@@ -119,7 +122,7 @@ func (n *Node) Get(tag string) *Node {
 	return nil
 }
 
-func (n *Node) GetAll(tag string) []*Node {
+func (n *Node) GetAll(tag string) Nodes {
 	nodes := n.Nodes()
 	var matches []*Node
 	for _, node := range nodes {
@@ -128,6 +131,24 @@ func (n *Node) GetAll(tag string) []*Node {
 		}
 	}
 	return matches
+}
+
+func (n *Node) Centroid() *Vertex3D {
+	nodes := n.Nodes()
+	var sumX, sumY, sumZ float64
+	for _, node := range nodes {
+		sumX += node.Outer.Centroid().X
+		sumY += node.Outer.Centroid().Y
+		sumZ += node.Outer.Centroid().Z
+	}
+	return &Vertex3D{sumX / float64(len(nodes)), sumY / float64(len(nodes)), sumZ / float64(len(nodes))}
+}
+
+func (n *Node) Center() {
+	ns := n.Nodes()
+	centroid := ns.Centroid()
+	fmt.Println(centroid)
+	ns.Translate(-centroid.X, -centroid.Y, -centroid.Z)
 }
 
 func (n *Node) Reverse() {
@@ -148,6 +169,39 @@ func (n *Node) Generate(filename string) {
 	}
 	triangles := earcut3d.Earcut(faces, holes...)
 	earcut3d.CreateObjFile(filename, triangles)
+}
+
+type Nodes []*Node
+
+func (ns Nodes) Centroid() *Vertex3D {
+	var sumX, sumY, sumZ float64
+	for _, node := range ns {
+		sumX += node.Outer.Centroid().X
+		sumY += node.Outer.Centroid().Y
+		sumZ += node.Outer.Centroid().Z
+	}
+	return &Vertex3D{sumX / float64(len(ns)), sumY / float64(len(ns)), sumZ / float64(len(ns))}
+}
+
+func (ns Nodes) UniqueVertices() []*Vertex3D {
+	unique := make(map[string]*Vertex3D)
+	for _, node := range ns {
+		for _, v := range node.Outer.Vertices {
+			unique[v.String()] = v
+		}
+	}
+	var vertices []*Vertex3D
+	for _, v := range unique {
+		vertices = append(vertices, v)
+	}
+	return vertices
+}
+
+func (ns Nodes) Translate(x, y, z float64) {
+	uniques := ns.UniqueVertices()
+	for _, v := range uniques {
+		v.Translate(x, y, z)
+	}
 }
 
 // utils

@@ -1,6 +1,7 @@
 package toothpaste
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -36,6 +37,10 @@ func (v *Vertex2D) Rotate(deg int) {
 	angle := float64(deg) * (math.Pi / 180)
 	v.X = v.X*math.Cos(angle) - v.Y*math.Sin(angle)
 	v.Y = v.X*math.Sin(angle) + v.Y*math.Cos(angle)
+}
+
+func (v *Vertex2D) String() string {
+	return fmt.Sprintf("{%f, %f}", v.X, v.Y)
 }
 
 func (v *Vertex2D) To3D(z float64) *Vertex3D {
@@ -78,4 +83,8 @@ func (v *Vertex3D) Rotate(deg int, axis Axis) {
 		v.X = v.X*math.Cos(angle) - v.Y*math.Sin(angle)
 		v.Y = v.X*math.Sin(angle) + v.Y*math.Cos(angle)
 	}
+}
+
+func (v *Vertex3D) String() string {
+	return fmt.Sprintf("{%f, %f, %f}", v.X, v.Y, v.Z)
 }
