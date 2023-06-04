@@ -6,7 +6,7 @@ import (
 
 func main() {
 	w, d, h := 1.0, 1.0, 1.0
-	node := toothpaste.NewNode(toothpaste.Square(w, d))
+	node := toothpaste.NewNode(toothpaste.Square(w, d).To3D())
 	node.Extrude(h)
 	node.Generate("cube.obj")
 }

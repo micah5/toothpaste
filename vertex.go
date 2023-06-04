@@ -32,16 +32,10 @@ func (v *Vertex2D) Mul(m float64) {
 	v.Y *= m
 }
 
-func (v *Vertex2D) Rotate(deg int, axis Axis) {
+func (v *Vertex2D) Rotate(deg int) {
 	angle := float64(deg) * (math.Pi / 180)
-	switch axis {
-	case XAxis:
-		v.Y = v.Y*math.Cos(angle) - v.Z*math.Sin(angle)
-		v.Z = v.Y*math.Sin(angle) + v.Z*math.Cos(angle)
-	case YAxis:
-		v.X = v.X*math.Cos(angle) + v.Z*math.Sin(angle)
-		v.Z = -v.X*math.Sin(angle) + v.Z*math.Cos(angle)
-	}
+	v.X = v.X*math.Cos(angle) - v.Y*math.Sin(angle)
+	v.Y = v.X*math.Sin(angle) + v.Y*math.Cos(angle)
 }
 
 func (v *Vertex2D) To3D(z float64) *Vertex3D {

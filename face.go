@@ -3,6 +3,7 @@ package toothpaste
 import (
 	"github.com/micah5/earcut-3d"
 	"github.com/micah5/exhaustive-fitter"
+	"math"
 )
 
 type ProjectionDetails struct {
@@ -17,11 +18,11 @@ type Face2D struct {
 }
 
 func NewFace2D(vertices ...float64) *Face2D {
-	f := make(Face2D, len(vertices)/2)
+	var v []*Vertex2D
 	for i := 0; i < len(vertices); i += 2 {
-		v[i/2] = &Vertex2D{vertices[i], vertices[i+1]}
+		v = append(v, &Vertex2D{vertices[i], vertices[i+1]})
 	}
-	return &v
+	return &Face2D{v, nil}
 }
 
 func (f *Face2D) Centroid() *Vertex2D {
@@ -48,17 +49,17 @@ func (f *Face2D) Scale(x, y float64) {
 	f.Translate(cen.X, cen.Y)
 }
 
-func (f *Face2D) Rotate(deg int, axis Axis) {
+func (f *Face2D) Rotate(deg int) {
 	cen := f.Centroid()
 	f.Translate(-cen.X, -cen.Y)
 	for _, vertex := range f.Vertices {
-		vertex.Rotate(deg, axis)
+		vertex.Rotate(deg)
 	}
 	f.Translate(cen.X, cen.Y)
 }
 
 func (f *Face2D) Flatten() []float64 {
-	flattened := make([]float64, len(v)*2)
+	flattened := make([]float64, len(f.Vertices)*2)
 	for i, vertex := range f.Vertices {
 		flattened[i*2] = vertex.X
 		flattened[i*2+1] = vertex.Y
@@ -93,7 +94,7 @@ func (f *Face2D) Copy() *Face2D {
 func (f *Face2D) To3D() *Face3D {
 	var face3D *Face3D
 	if f.PD != nil {
-		points3D := ProjectShapeTo3D(f.Flatten(), f.PD.Basis, f.PD.RefPoint)
+		points3D := earcut3d.ProjectShapeTo3D(f.Flatten(), f.PD.Basis, f.PD.RefPoint[:])
 		face3D = NewFace3D(points3D...)
 	} else {
 		face3D = NewFace3D()
@@ -110,11 +111,11 @@ type Face3D struct {
 }
 
 func NewFace3D(vertices ...float64) *Face3D {
-	f := make(Face3D, len(vertices)/3)
+	var v []*Vertex3D
 	for i := 0; i < len(vertices); i += 3 {
-		v[i/3] = &Vertex3D{vertices[i], vertices[i+1], vertices[i+2]}
+		v = append(v, &Vertex3D{vertices[i], vertices[i+1], vertices[i+2]})
 	}
-	return &v
+	return &Face3D{v}
 }
 
 func (f *Face3D) Normal() *Vertex3D {
@@ -136,7 +137,7 @@ func (f *Face3D) Normal() *Vertex3D {
 	normal.Y /= length
 	normal.Z /= length
 
-	return normal
+	return &normal
 }
 
 func (f *Face3D) Centroid() *Vertex3D {
@@ -174,7 +175,7 @@ func (f *Face3D) Rotate(deg int, axis Axis) {
 }
 
 func (f *Face3D) Flatten() []float64 {
-	flattened := make([]float64, len(v)*3)
+	flattened := make([]float64, len(f.Vertices)*3)
 	for i, vertex := range f.Vertices {
 		flattened[i*3] = vertex.X
 		flattened[i*3+1] = vertex.Y
@@ -203,6 +204,6 @@ func (f *Face3D) To2D() *Face2D {
 	basis := earcut3d.FindBasis(inputFace)
 	points2D := earcut3d.ProjectShapeTo2D(inputFace, basis)
 	face2D := NewFace2D(points2D...)
-	face2D.PD = &ProjectionDetails{basis, inputFace[:3]}
+	face2D.PD = &ProjectionDetails{basis, [3]float64{inputFace[0], inputFace[1], inputFace[2]}}
 	return face2D
 }

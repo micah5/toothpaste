@@ -30,6 +30,7 @@ func (n *Node) Extrude(height float64, tags ...string) {
 		// Create the top face
 		top := f.Copy()
 		top.Translate(normal.X*height, normal.Y*height, normal.Z*height)
+		topN := NewTaggedNode(getTag(0, tags), top)
 
 		// Create the sides
 		var cur *Node = n
@@ -38,17 +39,19 @@ func (n *Node) Extrude(height float64, tags ...string) {
 			v1 := f.Vertices[i1]
 			v2 := f.Vertices[i2]
 			sideFace := NewFace3D(
-				v1.X, v1.Y, v1.Z,
-				v1.X, v1.Y, v1.Z+height,
-				v2.X, v2.Y, v2.Z+height,
+				top.Vertices[i1].X, top.Vertices[i1].Y, top.Vertices[i1].Z,
+				top.Vertices[i2].X, top.Vertices[i2].Y, top.Vertices[i2].Z,
 				v2.X, v2.Y, v2.Z,
+				v1.X, v1.Y, v1.Z,
 			)
-			n.Next = NewNode(getTag(i, tags), sideFace)
-			n.Next.Prev = cur
-			cur = n.Next
+			newNode := NewTaggedNode(getTag(i+1, tags), sideFace)
+			cur.Next = newNode
+			newNode.Prev = cur
+			cur = newNode
 		}
-		cur.Next = top
-		top.Prev = cur
+		top.Flip()
+		cur.Next = topN
+		topN.Prev = cur
 	}
 }
 
@@ -106,6 +109,27 @@ func (n *Node) Flip() {
 	}
 }
 
+func (n *Node) Get(tag string) *Node {
+	nodes := n.Nodes()
+	for _, node := range nodes {
+		if node.Tag == tag {
+			return node
+		}
+	}
+	return nil
+}
+
+func (n *Node) GetAll(tag string) []*Node {
+	nodes := n.Nodes()
+	var matches []*Node
+	for _, node := range nodes {
+		if node.Tag == tag {
+			matches = append(matches, node)
+		}
+	}
+	return matches
+}
+
 func (n *Node) Reverse() {
 	n.Flip()
 }
@@ -116,9 +140,11 @@ func (n *Node) Generate(filename string) {
 	var holes [][][]float64
 	for _, node := range nodes {
 		faces = append(faces, node.Outer.Flatten())
+		_holes := make([][]float64, 0)
 		for _, inner := range node.Inner {
-			holes = append(holes, inner.Flatten())
+			_holes = append(_holes, inner.Flatten())
 		}
+		holes = append(holes, _holes)
 	}
 	triangles := earcut3d.Earcut(faces, holes...)
 	earcut3d.CreateObjFile(filename, triangles)
