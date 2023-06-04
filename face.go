@@ -109,14 +109,34 @@ type Face3D struct {
 	Vertices []*Vertex3D
 }
 
-func NewFace3D(vertices ...[]float64) *Face3D {
-	f := make(Face3D, len(vertices))
-	for i, arr := range vertices {
-		for j := 0; j < len(arr); j += 3 {
-			f[i] = &Vertex3D{arr[j], arr[j+1], arr[j+2]}
-		}
+func NewFace3D(vertices ...float64) *Face3D {
+	f := make(Face3D, len(vertices)/3)
+	for i := 0; i < len(vertices); i += 3 {
+		v[i/3] = &Vertex3D{vertices[i], vertices[i+1], vertices[i+2]}
 	}
-	return &f
+	return &v
+}
+
+func (f *Face3D) Normal() *Vertex3D {
+	var normal Vertex3D
+
+	v := f.Vertices
+	for i := range v {
+		v1 := *v[i]
+		v2 := *v[(i+1)%len(v)]
+
+		normal.X += (v1.Y - v2.Y) * (v1.Z + v2.Z)
+		normal.Y += (v1.Z - v2.Z) * (v1.X + v2.X)
+		normal.Z += (v1.X - v2.X) * (v1.Y + v2.Y)
+	}
+
+	// Normalize the normal vector
+	length := math.Sqrt(normal.X*normal.X + normal.Y*normal.Y + normal.Z*normal.Z)
+	normal.X /= length
+	normal.Y /= length
+	normal.Z /= length
+
+	return normal
 }
 
 func (f *Face3D) Centroid() *Vertex3D {
@@ -166,6 +186,16 @@ func (f *Face3D) Flatten() []float64 {
 func (f *Face3D) Copy() *Face3D {
 	copy := NewFace3D(f.Flatten()...)
 	return copy
+}
+
+func (f *Face3D) Flip() {
+	for i, j := 0, len(f.Vertices)-1; i < j; i, j = i+1, j-1 {
+		f.Vertices[i], f.Vertices[j] = f.Vertices[j], f.Vertices[i]
+	}
+}
+
+func (f *Face3D) Reverse() {
+	f.Flip()
 }
 
 func (f *Face3D) To2D() *Face2D {

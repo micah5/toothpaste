@@ -27,6 +27,11 @@ func (v *Vertex2D) Scale(x, y float64) {
 	v.Y *= y
 }
 
+func (v *Vertex2D) Mul(m float64) {
+	v.X *= m
+	v.Y *= m
+}
+
 func (v *Vertex2D) Rotate(deg int, axis Axis) {
 	angle := float64(deg) * (math.Pi / 180)
 	switch axis {
@@ -58,6 +63,12 @@ func (v *Vertex3D) Scale(x, y, z float64) {
 	v.X *= x
 	v.Y *= y
 	v.Z *= z
+}
+
+func (v *Vertex3D) Mul(m float64) {
+	v.X *= m
+	v.Y *= m
+	v.Z *= m
 }
 
 func (v *Vertex3D) Rotate(deg int, axis Axis) {
