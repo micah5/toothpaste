@@ -20,16 +20,18 @@ func NewTaggedNode(tag string, outer *Face3D, inner ...*Face3D) *Node {
 	return &Node{tag, outer, inner, nil, nil}
 }
 
-func (n *Node) ExtrudeLoop(height float64, numIter int, fn func(int, *Node), tags ...string) *Node {
+func (n *Node) ExtrudeLoop(numIter int, fn func(int, *Node) float64, tags ...string) *Node {
 	var node *Node = n
 	for i := 0; i < numIter; i++ {
-		fn(i, node)
+		height := fn(i, node)
 		face := node.Outer.Copy()
-		node = extrude(node, face, height, tags...)
+		node2 := extrude(node, face, height, tags...)
 		if i > 0 {
 			node.Drop()
 		}
+		node = node2
 	}
+	fn(numIter, node)
 	return node
 }
 
