@@ -198,6 +198,30 @@ func (f *Face3D) Rotate(deg int, axis Axis) {
 	f.Translate(cen.X, cen.Y, cen.Z)
 }
 
+func (f *Face3D) Translate2D(x, y float64) {
+	face2D := f.To2D()
+	face2D.Translate(x, y)
+	f = face2D.To3D()
+}
+
+func (f *Face3D) Scale2D(x, y float64) {
+	face2D := f.To2D()
+	face2D.Scale(x, y)
+	f = face2D.To3D()
+}
+
+func (f *Face3D) Mul2D(magnitude float64) {
+	face2D := f.To2D()
+	face2D.Mul(magnitude)
+	f = face2D.To3D()
+}
+
+func (f *Face3D) Rotate2D(deg int) {
+	face2D := f.To2D()
+	face2D.Rotate(deg)
+	f = face2D.To3D()
+}
+
 func (f *Face3D) Flatten() []float64 {
 	flattened := make([]float64, len(f.Vertices)*3)
 	for i, vertex := range f.Vertices {

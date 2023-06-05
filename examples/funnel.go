@@ -13,21 +13,24 @@ func main() {
 	inner.Translate(w*(1-funnel_perc)/2, d*(1-funnel_perc)/2)
 	node := toothpaste.NewNode(outer.To3D(), inner.To3D())
 
+	// For a simplier solution, we could use ExtrudeLoop here
+	// but we'll do it manually to demonstrate the process
 	num_iterations := 4
 	for i := 0; i < num_iterations; i++ {
 		multiplier := math.Pow(1.34, float64(i))
 
-		// Handle outer circle
-		outer2D := node.Outer.To2D()
-		outer2D.Mul(multiplier)
-		node.Outer = outer2D.To3D()
+		// Handle changing size of inner and outer circles
+		node.Mul2D(multiplier)
 
-		// Handle inner circle
-		inner2D := node.Inner[0].To2D()
-		inner2D.Mul(multiplier)
-		node.Inner[0] = inner2D.To3D()
-
-		node = node.Extrude(h)
+		if i > 0 {
+			// ExtrudeDrop is a helper function to extrude and drop the bottom face
+			// It's useful for the second iteration and beyond because
+			// the bottom faces are hidden within the mesh from this point on
+			node = node.ExtrudeDrop(h)
+		} else {
+			// We can't use it for the first iteration because we need the bottom
+			node = node.Extrude(h)
+		}
 	}
 	node.Flip()
 	node.Center()

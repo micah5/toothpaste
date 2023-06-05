@@ -11,12 +11,9 @@ func main() {
 	inner := toothpaste.Circle(w/2, d/2, 10)
 	inner.Translate(w/4, d/4)
 	node := toothpaste.NewNode(outer.To3D(), inner.To3D())
-
-	//num_iterations := 4
-	//for i := 0; i < num_iterations; i++ {
-	//	multiplier := math.Pow(1.2, float64(i))
-	//	node = node.ExtrudeMul(h, multiplier)
-	//}
+	node.ExtrudeLoop(h, 10, func(i int, node *toothpaste.Node) {
+		node.Mul2D(math.Pow(0.9, float64(i)))
+	})
 	node.Flip()
 	node.Center()
 	node.Generate("donut.obj")

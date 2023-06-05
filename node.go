@@ -20,6 +20,19 @@ func NewTaggedNode(tag string, outer *Face3D, inner ...*Face3D) *Node {
 	return &Node{tag, outer, inner, nil, nil}
 }
 
+func (n *Node) ExtrudeLoop(height float64, numIter int, fn func(int, *Node), tags ...string) *Node {
+	var node *Node = n
+	for i := 0; i < numIter; i++ {
+		fn(i, node)
+		face := node.Outer.Copy()
+		node = extrude(node, face, height, tags...)
+		if i > 0 {
+			node.Drop()
+		}
+	}
+	return node
+}
+
 func (n *Node) ExtrudeDrop(height float64, tags ...string) *Node {
 	top := n.Outer.Copy()
 	res := extrude(n, top, height, tags...)
@@ -87,6 +100,41 @@ func (n *Node) Scale(x, y, z float64) {
 	faces := n.Faces()
 	for _, f := range faces {
 		f.Scale(x, y, z)
+	}
+}
+
+func (n *Node) Mul(m float64) {
+	faces := n.Faces()
+	for _, f := range faces {
+		f.Mul(m)
+	}
+}
+
+func (n *Node) Translate2D(x, y float64) {
+	faces := n.Faces()
+	for _, f := range faces {
+		f.Translate2D(x, y)
+	}
+}
+
+func (n *Node) Rotate2D(deg int) {
+	faces := n.Faces()
+	for _, f := range faces {
+		f.Rotate2D(deg)
+	}
+}
+
+func (n *Node) Scale2D(x, y float64) {
+	faces := n.Faces()
+	for _, f := range faces {
+		f.Scale2D(x, y)
+	}
+}
+
+func (n *Node) Mul2D(m float64) {
+	faces := n.Faces()
+	for _, f := range faces {
+		f.Mul2D(m)
 	}
 }
 
