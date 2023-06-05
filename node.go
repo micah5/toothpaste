@@ -20,51 +20,23 @@ func NewTaggedNode(tag string, outer *Face3D, inner ...*Face3D) *Node {
 	return &Node{tag, outer, inner, nil, nil}
 }
 
-func (n *Node) Extrude(height float64, tags ...string) {
-	// Negate the normal vector components to flip the direction
-	normal := n.Outer.Normal()
-	normal.Mul(-1)
-
-	// Create the top face
+func (n *Node) ExtrudeDrop(height float64, tags ...string) *Node {
 	top := n.Outer.Copy()
-	top.Translate(normal.X*height, normal.Y*height, normal.Z*height)
-	holes := make([]*Face3D, 0)
-	for _, f := range n.Inner {
-		hole := f.Copy()
-		hole.Translate(normal.X*height, normal.Y*height, normal.Z*height)
-		holes = append(holes, hole)
-	}
-	topN := NewTaggedNode(getTag(0, tags), top, holes...)
+	res := extrude(n, top, height, tags...)
+	n.Drop()
+	return res
+}
 
-	// Create the sides
-	var cur *Node = n
-	faces := n.Faces()
-	for k, f := range faces {
-		for i := range f.Vertices {
-			i1, i2 := i, (i+1)%len(f.Vertices)
-			v1 := f.Vertices[i1]
-			v2 := f.Vertices[i2]
-			sideFace := &Face3D{
-				Vertices: []*Vertex3D{
-					top.Vertices[i1],
-					top.Vertices[i2],
-					v2,
-					v1,
-				},
-			}
-			if k != 0 {
-				sideFace.Flip()
-			}
-			newNode := NewTaggedNode(getTag(i+1, tags), sideFace)
-			cur.Next = newNode
-			newNode.Prev = cur
-			cur = newNode
-		}
-	}
-	cur.Next = topN
-	topN.Prev = cur
-	cur = topN
-	top.Flip()
+func (n *Node) ExtrudeFlip(height float64, tags ...string) *Node {
+	top := n.Outer.Copy()
+	res := extrude(n, top, height, tags...)
+	res.Flip()
+	return res
+}
+
+func (n *Node) Extrude(height float64, tags ...string) *Node {
+	top := n.Outer.Copy()
+	return extrude(n, top, height, tags...)
 }
 
 func (n *Node) Faces() []*Face3D {
@@ -88,9 +60,13 @@ func (n *Node) Nodes() Nodes {
 	return nodes
 }
 
-func (n *Node) Remove() {
+func (n *Node) Drop() {
 	n.Prev.Next = n.Next
 	n.Next.Prev = n.Prev
+}
+
+func (n *Node) Remove() {
+	n.Drop()
 }
 
 func (n *Node) Translate(x, y, z float64) {
@@ -218,4 +194,59 @@ func getTag(idx int, tags []string) string {
 		return ""
 	}
 	return tags[idx]
+}
+
+func extrude(n *Node, top *Face3D, height float64, tags ...string) *Node {
+	// Negate the normal vector components to flip the direction
+	normal := n.Outer.Normal()
+	normal.Mul(-1)
+
+	// Create the top face
+	top.Translate(normal.X*height, normal.Y*height, normal.Z*height)
+	holes := make([]*Face3D, 0)
+	for _, f := range n.Inner {
+		hole := f.Copy()
+		hole.Translate(normal.X*height, normal.Y*height, normal.Z*height)
+		holes = append(holes, hole)
+	}
+	topN := NewTaggedNode(getTag(0, tags), top, holes...)
+
+	// Create the sides
+	var cur *Node = n
+	faces := n.Faces()
+	for k, f := range faces {
+		for i := range f.Vertices {
+			i1, i2 := i, (i+1)%len(f.Vertices)
+			v1 := f.Vertices[i1]
+			v2 := f.Vertices[i2]
+			var topV1, topV2 *Vertex3D
+			if k == 0 {
+				topV1 = top.Vertices[i1]
+				topV2 = top.Vertices[i2]
+			} else {
+				topV1 = holes[k-1].Vertices[i1]
+				topV2 = holes[k-1].Vertices[i2]
+			}
+			sideFace := &Face3D{
+				Vertices: []*Vertex3D{
+					topV1,
+					topV2,
+					v2,
+					v1,
+				},
+			}
+			if k != 0 {
+				sideFace.Flip()
+			}
+			newNode := NewTaggedNode(getTag(i+1, tags), sideFace)
+			cur.Next = newNode
+			newNode.Prev = cur
+			cur = newNode
+		}
+	}
+	cur.Next = topN
+	topN.Prev = cur
+	cur = topN
+
+	return topN
 }

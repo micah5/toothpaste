@@ -39,12 +39,32 @@ func (v *Vertex2D) Rotate(deg int) {
 	v.Y = v.X*math.Sin(angle) + v.Y*math.Cos(angle)
 }
 
+func (v *Vertex2D) MoveTo(x, y float64) {
+	v.X = x
+	v.Y = y
+}
+
 func (v *Vertex2D) String() string {
 	return fmt.Sprintf("{%f, %f}", v.X, v.Y)
 }
 
-func (v *Vertex2D) To3D(z float64) *Vertex3D {
-	return &Vertex3D{v.X, z, v.Y}
+func (v *Vertex2D) To3D(_axis ...Axis) *Vertex3D {
+	var axis Axis
+	if len(_axis) == 0 {
+		axis = XAxis
+	} else {
+		axis = _axis[0]
+	}
+	switch axis {
+	case XAxis:
+		return &Vertex3D{v.X, 0, v.Y}
+	case YAxis:
+		return &Vertex3D{0, v.Y, v.X}
+	case ZAxis:
+		return &Vertex3D{v.X, v.Y, 0}
+	default:
+		return nil
+	}
 }
 
 // 3D
@@ -83,6 +103,12 @@ func (v *Vertex3D) Rotate(deg int, axis Axis) {
 		v.X = v.X*math.Cos(angle) - v.Y*math.Sin(angle)
 		v.Y = v.X*math.Sin(angle) + v.Y*math.Cos(angle)
 	}
+}
+
+func (v *Vertex3D) MoveTo(x, y, z float64) {
+	v.X = x
+	v.Y = y
+	v.Z = z
 }
 
 func (v *Vertex3D) String() string {

@@ -10,6 +10,7 @@ func main() {
 	node.Extrude(h, "top", "front", "right", "back", "left")
 	node.Get("left").Rotate(30, toothpaste.ZAxis)
 	node.Get("right").Rotate(30, toothpaste.ZAxis)
+	node.Get("top").Flip()
 	node.Center()
 	node.Generate("parallelogram.obj")
 }

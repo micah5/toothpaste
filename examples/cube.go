@@ -13,14 +13,19 @@ func main() {
 
 	// A node is a face that is connected to other faces
 	// Let's create a node from the square (at z=0)
-	node := toothpaste.NewNode(square.To3D())
+	bottom := toothpaste.NewNode(square.To3D())
 
 	// Extrude the node to create a cube
-	node.Extrude(h)
+	// Extrude returns the top face of the extrusion
+	top := bottom.Extrude(h)
+
+	// Currently the top face is facing down (since it is a copy of the bottom)
+	// Flip the top face so that it is facing up
+	top.Flip()
 
 	// Center the cube at the origin
-	node.Center()
+	bottm.Center()
 
 	// Generate the .obj file
-	node.Generate("cube.obj")
+	bottom.Generate("cube.obj")
 }

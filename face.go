@@ -9,6 +9,7 @@ import (
 type ProjectionDetails struct {
 	Basis    []float64
 	RefPoint [3]float64
+	Face3D   *Face3D
 }
 
 // 2D
@@ -67,6 +68,15 @@ func (f *Face2D) Flatten() []float64 {
 	return flattened
 }
 
+func (f *Face2D) Mul(magnitude float64) {
+	cen := f.Centroid()
+	f.Translate(-cen.X, -cen.Y)
+	for _, vertex := range f.Vertices {
+		vertex.Mul(magnitude)
+	}
+	f.Translate(cen.X, cen.Y)
+}
+
 func (inner *Face2D) Fit2D(outer *Face2D) {
 	result, err := fitter.Transform(inner.Flatten(), outer.Flatten())
 	if err != nil {
@@ -91,15 +101,20 @@ func (f *Face2D) Copy() *Face2D {
 	return copy
 }
 
-func (f *Face2D) To3D() *Face3D {
+func (f *Face2D) To3D(axis ...Axis) *Face3D {
 	var face3D *Face3D
 	if f.PD != nil {
 		points3D := earcut3d.ProjectShapeTo3D(f.Flatten(), f.PD.Basis, f.PD.RefPoint[:])
-		face3D = NewFace3D(points3D...)
+		face3D = f.PD.Face3D
+		for i := 0; i < len(points3D); i += 3 {
+			face3D.Vertices[i/3].X = points3D[i]
+			face3D.Vertices[i/3].Y = points3D[i+1]
+			face3D.Vertices[i/3].Z = points3D[i+2]
+		}
 	} else {
 		face3D = NewFace3D()
 		for _, vertex := range f.Vertices {
-			face3D.Vertices = append(face3D.Vertices, vertex.To3D(0))
+			face3D.Vertices = append(face3D.Vertices, vertex.To3D(axis...))
 		}
 	}
 	return face3D
@@ -165,6 +180,15 @@ func (f *Face3D) Scale(x, y, z float64) {
 	f.Translate(cen.X, cen.Y, cen.Z)
 }
 
+func (f *Face3D) Mul(magnitude float64) {
+	cen := f.Centroid()
+	f.Translate(-cen.X, -cen.Y, -cen.Z)
+	for _, vertex := range f.Vertices {
+		vertex.Mul(magnitude)
+	}
+	f.Translate(cen.X, cen.Y, cen.Z)
+}
+
 func (f *Face3D) Rotate(deg int, axis Axis) {
 	cen := f.Centroid()
 	f.Translate(-cen.X, -cen.Y, -cen.Z)
@@ -204,6 +228,6 @@ func (f *Face3D) To2D() *Face2D {
 	basis := earcut3d.FindBasis(inputFace)
 	points2D := earcut3d.ProjectShapeTo2D(inputFace, basis)
 	face2D := NewFace2D(points2D...)
-	face2D.PD = &ProjectionDetails{basis, [3]float64{inputFace[0], inputFace[1], inputFace[2]}}
+	face2D.PD = &ProjectionDetails{basis, [3]float64{inputFace[0], inputFace[1], inputFace[2]}, f}
 	return face2D
 }
