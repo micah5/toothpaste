@@ -24,8 +24,7 @@ func (n *Node) ExtrudeLoop(numIter int, fn func(int, *Node) float64, tags ...str
 	var node *Node = n
 	for i := 0; i < numIter; i++ {
 		height := fn(i, node)
-		face := node.Outer.Copy()
-		node2 := extrude(node, face, height, tags...)
+		node2 := extrude(node, []*Face3D{node.Outer}, height, true, tags...)
 		if i > 0 {
 			node.Drop()
 		}
@@ -36,22 +35,30 @@ func (n *Node) ExtrudeLoop(numIter int, fn func(int, *Node) float64, tags ...str
 }
 
 func (n *Node) ExtrudeDrop(height float64, tags ...string) *Node {
-	top := n.Outer.Copy()
-	res := extrude(n, top, height, tags...)
+	res := extrude(n, n.Faces(), height, true, tags...)
 	n.Drop()
 	return res
 }
 
 func (n *Node) ExtrudeFlip(height float64, tags ...string) *Node {
-	top := n.Outer.Copy()
-	res := extrude(n, top, height, tags...)
+	res := extrude(n, n.Faces(), height, true, tags...)
 	res.Flip()
 	return res
 }
 
 func (n *Node) Extrude(height float64, tags ...string) *Node {
-	top := n.Outer.Copy()
-	return extrude(n, top, height, tags...)
+	return extrude(n, n.Faces(), height, true, tags...)
+}
+
+func (n *Node) ExtrudeInner(height float64, tags ...string) Nodes {
+	tops := make(Nodes, len(n.Inner))
+	for _, f := range n.Inner {
+		res := extrude(n, []*Face3D{f}, height, false, tags...)
+		prevN := res.GetPrev(len(f.Vertices))
+		prevN.Flip()
+		tops = append(tops, res)
+	}
+	return tops
 }
 
 func (n *Node) Faces() []*Face3D {
@@ -167,6 +174,26 @@ func (n *Node) Get(tag string) *Node {
 	return nil
 }
 
+func (n *Node) GetPrev(num int) Nodes {
+	nodes := Nodes{}
+	cur := n.Prev
+	for i := 0; i < num; i++ {
+		nodes = append(nodes, cur)
+		cur = cur.Prev
+	}
+	return nodes
+}
+
+func (n *Node) GetNext(num int) Nodes {
+	nodes := Nodes{}
+	cur := n.Next
+	for i := 0; i < num; i++ {
+		nodes = append(nodes, cur)
+		cur = cur.Next
+	}
+	return nodes
+}
+
 func (n *Node) GetAll(tags ...string) Nodes {
 	nodes := n.Nodes()
 	var matches []*Node
@@ -253,6 +280,12 @@ func (ns Nodes) Translate(x, y, z float64) {
 	}
 }
 
+func (ns Nodes) Flip() {
+	for _, node := range ns {
+		node.Flip()
+	}
+}
+
 func (ns Nodes) AddHoles(holes2D ...*Face2D) {
 	for _, node := range ns {
 		node.AddHoles(holes2D...)
@@ -267,24 +300,31 @@ func getTag(idx int, tags []string) string {
 	return tags[idx]
 }
 
-func extrude(n *Node, top *Face3D, height float64, tags ...string) *Node {
+func extrude(n *Node, faces []*Face3D, height float64, addHoles bool, tags ...string) *Node {
+	var next *Node
+	if n.Next != nil {
+		next = n.Next
+	}
+
 	// Negate the normal vector components to flip the direction
-	normal := n.Outer.Normal()
+	normal := faces[0].Normal()
 	normal.Mul(-1)
 
 	// Create the top face
+	top := faces[0].Copy()
 	top.Translate(normal.X*height, normal.Y*height, normal.Z*height)
 	holes := make([]*Face3D, 0)
-	for _, f := range n.Inner {
-		hole := f.Copy()
-		hole.Translate(normal.X*height, normal.Y*height, normal.Z*height)
-		holes = append(holes, hole)
+	if addHoles {
+		for _, f := range n.Inner {
+			hole := f.Copy()
+			hole.Translate(normal.X*height, normal.Y*height, normal.Z*height)
+			holes = append(holes, hole)
+		}
 	}
 	topN := NewTaggedNode(getTag(0, tags), top, holes...)
 
 	// Create the sides
 	var cur *Node = n
-	faces := n.Faces()
 	for k, f := range faces {
 		for i := range f.Vertices {
 			i1, i2 := i, (i+1)%len(f.Vertices)
@@ -318,6 +358,11 @@ func extrude(n *Node, top *Face3D, height float64, tags ...string) *Node {
 	cur.Next = topN
 	topN.Prev = cur
 	cur = topN
+
+	if next != nil {
+		cur.Next = next
+		next.Prev = cur
+	}
 
 	return topN
 }

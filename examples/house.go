@@ -26,7 +26,9 @@ func main() {
 	// Add windows
 	group := node.GetAll(sides...)
 	group.AddHoles(pane)
+	back := node.Get("back")
+	back.ExtrudeInner(h / 4)
 
-	node.Center()
+	//node.Center()
 	node.Generate("house.obj")
 }
