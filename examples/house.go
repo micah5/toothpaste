@@ -20,13 +20,13 @@ func main() {
 	//}
 
 	// Create house
-	bottom := toothpaste.NewNode(toothpaste.Square(w, d).To3D())
-	top := bottom.Extrude(h, append([]string{"top"}, sides...)...)
-	for _, tag := range sides {
-		node := top.Get(tag)
-		node.AddHoles(pane)
-	}
-	top.Flip()
-	//bottom.Center()
-	bottom.Generate("house.obj")
+	node := toothpaste.NewNode(toothpaste.Square(w, d).To3D())
+	node.ExtrudeFlip(h, append([]string{"top"}, sides...)...)
+
+	// Add windows
+	group := node.GetAll(sides...)
+	group.AddHoles(pane)
+
+	node.Center()
+	node.Generate("house.obj")
 }

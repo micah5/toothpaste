@@ -167,12 +167,14 @@ func (n *Node) Get(tag string) *Node {
 	return nil
 }
 
-func (n *Node) GetAll(tag string) Nodes {
+func (n *Node) GetAll(tags ...string) Nodes {
 	nodes := n.Nodes()
 	var matches []*Node
 	for _, node := range nodes {
-		if node.Tag == tag {
-			matches = append(matches, node)
+		for _, tag := range tags {
+			if node.Tag == tag {
+				matches = append(matches, node)
+			}
 		}
 	}
 	return matches
@@ -230,8 +232,11 @@ func (ns Nodes) Centroid() *Vertex3D {
 func (ns Nodes) UniqueVertices() []*Vertex3D {
 	unique := make(map[string]*Vertex3D)
 	for _, node := range ns {
-		for _, v := range node.Outer.Vertices {
-			unique[v.String()] = v
+		faces := node.Faces()
+		for _, f := range faces {
+			for _, v := range f.Vertices {
+				unique[v.String()] = v
+			}
 		}
 	}
 	var vertices []*Vertex3D
@@ -245,6 +250,12 @@ func (ns Nodes) Translate(x, y, z float64) {
 	uniques := ns.UniqueVertices()
 	for _, v := range uniques {
 		v.Translate(x, y, z)
+	}
+}
+
+func (ns Nodes) AddHoles(holes2D ...*Face2D) {
+	for _, node := range ns {
+		node.AddHoles(holes2D...)
 	}
 }
 
