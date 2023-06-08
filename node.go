@@ -113,30 +113,30 @@ func (n *Node) Mul(m float64) {
 }
 
 func (n *Node) Translate2D(x, y float64) {
-	n.Outer.Translate2D(x, y, false)
-	for _, f := range n.Inner {
-		f.Translate2D(x, y, true)
+	faces := n.Faces()
+	for _, f := range faces {
+		f.Translate2D(x, y)
 	}
 }
 
 func (n *Node) Rotate2D(deg int) {
-	n.Outer.Rotate2D(deg, false)
-	for _, f := range n.Inner {
-		f.Rotate2D(deg, true)
+	faces := n.Faces()
+	for _, f := range faces {
+		f.Rotate2D(deg)
 	}
 }
 
 func (n *Node) Scale2D(x, y float64) {
-	n.Outer.Scale2D(x, y, false)
-	for _, f := range n.Inner {
-		f.Scale2D(x, y, true)
+	faces := n.Faces()
+	for _, f := range faces {
+		f.Scale2D(x, y)
 	}
 }
 
 func (n *Node) Mul2D(m float64) {
-	n.Outer.Mul2D(m, false)
-	for _, f := range n.Inner {
-		f.Mul2D(m, true)
+	faces := n.Faces()
+	for _, f := range faces {
+		f.Mul2D(m)
 	}
 }
 
@@ -145,6 +145,14 @@ func (n *Node) Flip() {
 	for _, f := range faces {
 		f.Flip()
 	}
+}
+
+func (n *Node) AddHoles(holes2D ...*Face2D) {
+	holes3D := make([]*Face3D, len(holes2D))
+	for i, h := range holes2D {
+		holes3D[i] = h.To3D(true)
+	}
+	n.Inner = append(n.Inner, holes3D...)
 }
 
 func (n *Node) Get(tag string) *Node {

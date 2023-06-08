@@ -102,7 +102,7 @@ func (f *Face2D) Copy() *Face2D {
 	return copy
 }
 
-func (f *Face2D) ToProjected3D(createNewFace bool, axis ...Axis) *Face3D {
+func (f *Face2D) ToProjection3D(createNewFace bool) *Face3D {
 	var face3D *Face3D
 	if f.PD == nil {
 		println("No projection details")
@@ -118,26 +118,31 @@ func (f *Face2D) ToProjected3D(createNewFace bool, axis ...Axis) *Face3D {
 				face3D.Vertices[i/3].Z = points3D[i+2]
 			}
 		}
-		//points2D := earcut3d.ProjectShapeTo2D(f.PD.Face3D.Flatten(), f.PD.Basis)
-		//points3D2 := earcut3d.ProjectShapeTo3D(points2D, f.PD.Basis, f.PD.RefPoint[:])
-		//fmt.Println("In To3D", f.PD.Basis, f.PD.RefPoint[:])
-		//fmt.Println("Before", f.PD.Face3D.Flatten())
-		//fmt.Println("Before points2D", points2D)
-		//fmt.Println("Before face2D", f.Flatten())
-		//fmt.Println("After face2D", points3D)
-		//fmt.Println("After", points3D2)
-		//fmt.Println("Sanity test", earcut3d.ProjectShapeTo3D([]float64{0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1}, f.PD.Basis, f.PD.RefPoint[:]))
-		//println()
 	}
 	return face3D
 }
 
-func (f *Face2D) To3D(axis ...Axis) *Face3D {
+func (f *Face2D) ToFixed3D(axis ...Axis) *Face3D {
 	face3D := NewFace3D()
 	for _, vertex := range f.Vertices {
 		face3D.Vertices = append(face3D.Vertices, vertex.To3D(axis...))
 	}
 	return face3D
+}
+
+func (f *Face2D) To3D(params ...interface{}) *Face3D {
+	if len(params) == 0 {
+		return f.ToFixed3D()
+	}
+	param := params[0]
+	switch param.(type) {
+	case bool:
+		return f.ToProjection3D(param.(bool))
+	case Axis:
+		return f.ToFixed3D(param.(Axis))
+	default:
+		return nil
+	}
 }
 
 // 3D
@@ -218,28 +223,28 @@ func (f *Face3D) Rotate(deg int, axis Axis) {
 	f.Translate(cen.X, cen.Y, cen.Z)
 }
 
-func (f *Face3D) Translate2D(x, y float64, createNewFace bool) {
+func (f *Face3D) Translate2D(x, y float64) {
 	face2D := f.To2D()
 	face2D.Translate(x, y)
-	f = face2D.To3D(createNewFace)
+	f = face2D.To3D(false)
 }
 
-func (f *Face3D) Scale2D(x, y float64, createNewFace bool) {
+func (f *Face3D) Scale2D(x, y float64) {
 	face2D := f.To2D()
 	face2D.Scale(x, y)
-	f = face2D.To3D(createNewFace)
+	f = face2D.To3D(false)
 }
 
-func (f *Face3D) Mul2D(magnitude float64, createNewFace bool) {
+func (f *Face3D) Mul2D(magnitude float64) {
 	face2D := f.To2D()
 	face2D.Mul(magnitude)
-	f = face2D.To3D(createNewFace)
+	f = face2D.To3D(false)
 }
 
-func (f *Face3D) Rotate2D(deg int, createNewFace bool) {
+func (f *Face3D) Rotate2D(deg int) {
 	face2D := f.To2D()
 	face2D.Rotate(deg)
-	f = face2D.To3D(createNewFace)
+	f = face2D.To3D(false)
 }
 
 func (f *Face3D) Flatten() []float64 {
