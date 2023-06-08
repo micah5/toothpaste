@@ -113,30 +113,30 @@ func (n *Node) Mul(m float64) {
 }
 
 func (n *Node) Translate2D(x, y float64) {
-	faces := n.Faces()
-	for _, f := range faces {
-		f.Translate2D(x, y)
+	n.Outer.Translate2D(x, y, false)
+	for _, f := range n.Inner {
+		f.Translate2D(x, y, true)
 	}
 }
 
 func (n *Node) Rotate2D(deg int) {
-	faces := n.Faces()
-	for _, f := range faces {
-		f.Rotate2D(deg)
+	n.Outer.Rotate2D(deg, false)
+	for _, f := range n.Inner {
+		f.Rotate2D(deg, true)
 	}
 }
 
 func (n *Node) Scale2D(x, y float64) {
-	faces := n.Faces()
-	for _, f := range faces {
-		f.Scale2D(x, y)
+	n.Outer.Scale2D(x, y, false)
+	for _, f := range n.Inner {
+		f.Scale2D(x, y, true)
 	}
 }
 
 func (n *Node) Mul2D(m float64) {
-	faces := n.Faces()
-	for _, f := range faces {
-		f.Mul2D(m)
+	n.Outer.Mul2D(m, false)
+	for _, f := range n.Inner {
+		f.Mul2D(m, true)
 	}
 }
 

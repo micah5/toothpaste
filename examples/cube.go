@@ -24,7 +24,7 @@ func main() {
 	top.Flip()
 
 	// Center the cube at the origin
-	bottm.Center()
+	bottom.Center()
 
 	// Generate the .obj file
 	bottom.Generate("cube.obj")

@@ -91,6 +91,7 @@ func (inner *Face2D) Fit2D(outer *Face2D) {
 func (inner *Face2D) Fit3D(face3D *Face3D) {
 	outer := face3D.To2D()
 	inner.Fit2D(outer)
+	inner.PD = outer.PD
 }
 
 func (f *Face2D) Copy() *Face2D {
@@ -101,21 +102,40 @@ func (f *Face2D) Copy() *Face2D {
 	return copy
 }
 
-func (f *Face2D) To3D(axis ...Axis) *Face3D {
+func (f *Face2D) ToProjected3D(createNewFace bool, axis ...Axis) *Face3D {
 	var face3D *Face3D
-	if f.PD != nil {
-		points3D := earcut3d.ProjectShapeTo3D(f.Flatten(), f.PD.Basis, f.PD.RefPoint[:])
-		face3D = f.PD.Face3D
-		for i := 0; i < len(points3D); i += 3 {
-			face3D.Vertices[i/3].X = points3D[i]
-			face3D.Vertices[i/3].Y = points3D[i+1]
-			face3D.Vertices[i/3].Z = points3D[i+2]
-		}
+	if f.PD == nil {
+		println("No projection details")
 	} else {
-		face3D = NewFace3D()
-		for _, vertex := range f.Vertices {
-			face3D.Vertices = append(face3D.Vertices, vertex.To3D(axis...))
+		points3D := earcut3d.ProjectShapeTo3D(f.Flatten(), f.PD.Basis, f.PD.RefPoint[:])
+		if createNewFace {
+			face3D = NewFace3D(points3D...)
+		} else {
+			face3D = f.PD.Face3D
+			for i := 0; i < len(points3D); i += 3 {
+				face3D.Vertices[i/3].X = points3D[i]
+				face3D.Vertices[i/3].Y = points3D[i+1]
+				face3D.Vertices[i/3].Z = points3D[i+2]
+			}
 		}
+		//points2D := earcut3d.ProjectShapeTo2D(f.PD.Face3D.Flatten(), f.PD.Basis)
+		//points3D2 := earcut3d.ProjectShapeTo3D(points2D, f.PD.Basis, f.PD.RefPoint[:])
+		//fmt.Println("In To3D", f.PD.Basis, f.PD.RefPoint[:])
+		//fmt.Println("Before", f.PD.Face3D.Flatten())
+		//fmt.Println("Before points2D", points2D)
+		//fmt.Println("Before face2D", f.Flatten())
+		//fmt.Println("After face2D", points3D)
+		//fmt.Println("After", points3D2)
+		//fmt.Println("Sanity test", earcut3d.ProjectShapeTo3D([]float64{0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1}, f.PD.Basis, f.PD.RefPoint[:]))
+		//println()
+	}
+	return face3D
+}
+
+func (f *Face2D) To3D(axis ...Axis) *Face3D {
+	face3D := NewFace3D()
+	for _, vertex := range f.Vertices {
+		face3D.Vertices = append(face3D.Vertices, vertex.To3D(axis...))
 	}
 	return face3D
 }
@@ -198,28 +218,28 @@ func (f *Face3D) Rotate(deg int, axis Axis) {
 	f.Translate(cen.X, cen.Y, cen.Z)
 }
 
-func (f *Face3D) Translate2D(x, y float64) {
+func (f *Face3D) Translate2D(x, y float64, createNewFace bool) {
 	face2D := f.To2D()
 	face2D.Translate(x, y)
-	f = face2D.To3D()
+	f = face2D.To3D(createNewFace)
 }
 
-func (f *Face3D) Scale2D(x, y float64) {
+func (f *Face3D) Scale2D(x, y float64, createNewFace bool) {
 	face2D := f.To2D()
 	face2D.Scale(x, y)
-	f = face2D.To3D()
+	f = face2D.To3D(createNewFace)
 }
 
-func (f *Face3D) Mul2D(magnitude float64) {
+func (f *Face3D) Mul2D(magnitude float64, createNewFace bool) {
 	face2D := f.To2D()
 	face2D.Mul(magnitude)
-	f = face2D.To3D()
+	f = face2D.To3D(createNewFace)
 }
 
-func (f *Face3D) Rotate2D(deg int) {
+func (f *Face3D) Rotate2D(deg int, createNewFace bool) {
 	face2D := f.To2D()
 	face2D.Rotate(deg)
-	f = face2D.To3D()
+	f = face2D.To3D(createNewFace)
 }
 
 func (f *Face3D) Flatten() []float64 {
@@ -252,6 +272,16 @@ func (f *Face3D) To2D() *Face2D {
 	basis := earcut3d.FindBasis(inputFace)
 	points2D := earcut3d.ProjectShapeTo2D(inputFace, basis)
 	face2D := NewFace2D(points2D...)
-	face2D.PD = &ProjectionDetails{basis, [3]float64{inputFace[0], inputFace[1], inputFace[2]}, f}
+	refPoint := f.Vertices[0]
+
+	//println()
+	//points3D := earcut3d.ProjectShapeTo3D(points2D, basis, []float64{refPoint.X, refPoint.Y, refPoint.Z})
+	//fmt.Println("In To2D", basis, []float64{refPoint.X, refPoint.Y, refPoint.Z})
+	//fmt.Println("Before:", points2D)
+	//fmt.Println("After:", points3D)
+	//fmt.Println("Sanity test:", earcut3d.ProjectShapeTo3D([]float64{0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1}, basis, []float64{refPoint.X, refPoint.Y, refPoint.Z}))
+	//println()
+
+	face2D.PD = &ProjectionDetails{basis, [3]float64{refPoint.X, refPoint.Y, refPoint.Z}, f}
 	return face2D
 }
