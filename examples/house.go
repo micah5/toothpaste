@@ -24,9 +24,7 @@ func main() {
 	top := bottom.Extrude(h, append([]string{"top"}, sides...)...)
 	for _, tag := range sides {
 		node := top.Get(tag)
-		_pane := pane.Copy()
-		_pane.Fit3D(node.Outer)
-		node.Inner = append(node.Inner, _pane.To3D())
+		node.AddHoles(pane)
 	}
 	top.Flip()
 	//bottom.Center()

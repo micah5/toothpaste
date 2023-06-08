@@ -150,7 +150,9 @@ func (n *Node) Flip() {
 func (n *Node) AddHoles(holes2D ...*Face2D) {
 	holes3D := make([]*Face3D, len(holes2D))
 	for i, h := range holes2D {
-		holes3D[i] = h.To3D(true)
+		tmp := h.Copy()
+		tmp.Fit3D(n.Outer)
+		holes3D[i] = tmp.To3D(true)
 	}
 	n.Inner = append(n.Inner, holes3D...)
 }
