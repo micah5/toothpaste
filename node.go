@@ -1,6 +1,7 @@
 package toothpaste
 
 import (
+	"fmt"
 	"github.com/micah5/earcut-3d"
 )
 
@@ -82,6 +83,70 @@ func (n *Node) Nodes() Nodes {
 	return nodes
 }
 
+func (n *Node) Connected() Nodes {
+	nodes := n.Nodes()
+	connected := map[*Node]bool{}
+	for _, node := range nodes {
+		for _, v := range n.Outer.Vertices {
+			if node.Outer.ContainsExact(v) && node != n {
+				connected[node] = true
+			}
+		}
+	}
+	res := Nodes{}
+	for node, _ := range connected {
+		res = append(res, node)
+	}
+	return res
+}
+
+func (n *Node) RealignConnectedInner() {
+	connected := n.Connected()
+	for _, node := range connected {
+		for _, hole := range node.Inner {
+			//fmt.Println("Before", hole)
+			//inner2D := hole.To2D()
+			//inner2D.PD.Basis = outer2D.PD.Basis
+			////inner2D.PD.RefPoint = outer2D.PD.RefPoint
+			//inner3D := inner2D.To3D(false)
+			//fmt.Println("After", inner3D)
+			//fmt.Println("Before 3D", hole.Vertices)
+			percShape := hole.PercShape.Copy()
+			//fmt.Println("Before", percShape)
+			percShape.Fit3D(node.Outer)
+			//fmt.Println("After", percShape)
+			res := percShape.To3D(true)
+			fmt.Println("After 3D", res)
+			for i, v := range hole.Vertices {
+				v.X = res.Vertices[i].X
+				v.Y = res.Vertices[i].Y
+				v.Z = res.Vertices[i].Z
+			}
+			//for i, v := range hole.Vertices {
+			//	v.X = inner3D.Vertices[i].X
+			//	v.Y = inner3D.Vertices[i].Y
+			//	v.Z = inner3D.Vertices[i].Z
+			//}
+		}
+	}
+}
+
+func (n *Node) Detach() {
+	tmp := n.Copy()
+	tmp.Next = n.Next
+	tmp.Prev = n.Prev
+	//n.Drop()
+	n = tmp
+}
+
+func (n *Node) Copy() *Node {
+	holes := make([]*Face3D, len(n.Inner))
+	for i, f := range n.Inner {
+		holes[i] = f.Copy()
+	}
+	return NewTaggedNode(n.Tag, n.Outer.Copy(), holes...)
+}
+
 func (n *Node) Drop() {
 	n.Prev.Next = n.Next
 	n.Next.Prev = n.Prev
@@ -145,6 +210,7 @@ func (n *Node) Mul2D(m float64) {
 	for _, f := range faces {
 		f.Mul2D(m)
 	}
+	n.RealignConnectedInner()
 }
 
 func (n *Node) Flip() {
@@ -284,6 +350,38 @@ func (ns Nodes) Flip() {
 	for _, node := range ns {
 		node.Flip()
 	}
+}
+
+func (ns Nodes) Extrude(height float64, tags ...string) Nodes {
+	var nodes Nodes
+	for _, node := range ns {
+		nodes = append(nodes, node.Extrude(height, tags...))
+	}
+	return nodes
+}
+
+func (ns Nodes) ExtrudeFlip(height float64, tags ...string) Nodes {
+	var nodes Nodes
+	for _, node := range ns {
+		nodes = append(nodes, node.ExtrudeFlip(height, tags...))
+	}
+	return nodes
+}
+
+func (ns Nodes) ExtrudeDrop(height float64, tags ...string) Nodes {
+	var nodes Nodes
+	for _, node := range ns {
+		nodes = append(nodes, node.ExtrudeDrop(height, tags...))
+	}
+	return nodes
+}
+
+func (ns Nodes) ExtrudeInner(height float64, tags ...string) Nodes {
+	var nodes Nodes
+	for _, node := range ns {
+		nodes = append(nodes, node.ExtrudeInner(height, tags...)...)
+	}
+	return nodes
 }
 
 func (ns Nodes) AddHoles(holes2D ...*Face2D) {

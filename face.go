@@ -14,8 +14,9 @@ type ProjectionDetails struct {
 
 // 2D
 type Face2D struct {
-	Vertices []*Vertex2D
-	PD       *ProjectionDetails
+	Vertices  []*Vertex2D
+	PD        *ProjectionDetails
+	PercShape *Face2D
 }
 
 func NewFace2D(vertices ...float64) *Face2D {
@@ -23,7 +24,9 @@ func NewFace2D(vertices ...float64) *Face2D {
 	for i := 0; i < len(vertices); i += 2 {
 		v = append(v, &Vertex2D{vertices[i], vertices[i+1]})
 	}
-	return &Face2D{v, nil}
+	return &Face2D{
+		Vertices: v,
+	}
 }
 
 func (f *Face2D) Centroid() *Vertex2D {
@@ -59,6 +62,15 @@ func (f *Face2D) Rotate(deg int) {
 	f.Translate(cen.X, cen.Y)
 }
 
+func (f *Face2D) ContainsExact(v *Vertex2D) bool {
+	for _, vertex := range f.Vertices {
+		if vertex.X == v.X && vertex.Y == v.Y {
+			return true
+		}
+	}
+	return false
+}
+
 func (f *Face2D) Flatten() []float64 {
 	flattened := make([]float64, len(f.Vertices)*2)
 	for i, vertex := range f.Vertices {
@@ -78,6 +90,7 @@ func (f *Face2D) Mul(magnitude float64) {
 }
 
 func (inner *Face2D) Fit2D(outer *Face2D) {
+	inner.PercShape = inner.Copy()
 	result, err := fitter.Transform(inner.Flatten(), outer.Flatten())
 	if err != nil {
 		println(err)
@@ -137,7 +150,9 @@ func (f *Face2D) To3D(params ...interface{}) *Face3D {
 	param := params[0]
 	switch param.(type) {
 	case bool:
-		return f.ToProjection3D(param.(bool))
+		face3D := f.ToProjection3D(param.(bool))
+		face3D.PercShape = f.PercShape
+		return face3D
 	case Axis:
 		return f.ToFixed3D(param.(Axis))
 	default:
@@ -147,7 +162,8 @@ func (f *Face2D) To3D(params ...interface{}) *Face3D {
 
 // 3D
 type Face3D struct {
-	Vertices []*Vertex3D
+	Vertices  []*Vertex3D
+	PercShape *Face2D
 }
 
 func NewFace3D(vertices ...float64) *Face3D {
@@ -155,7 +171,9 @@ func NewFace3D(vertices ...float64) *Face3D {
 	for i := 0; i < len(vertices); i += 3 {
 		v = append(v, &Vertex3D{vertices[i], vertices[i+1], vertices[i+2]})
 	}
-	return &Face3D{v}
+	return &Face3D{
+		Vertices: v,
+	}
 }
 
 func (f *Face3D) Normal() *Vertex3D {
@@ -262,10 +280,30 @@ func (f *Face3D) Copy() *Face3D {
 	return copy
 }
 
+func (f *Face3D) ContainsExact(vertex *Vertex3D) bool {
+	for _, v := range f.Vertices {
+		if v == vertex {
+			return true
+		}
+	}
+	return false
+}
+
 func (f *Face3D) Flip() {
 	for i, j := 0, len(f.Vertices)-1; i < j; i, j = i+1, j-1 {
 		f.Vertices[i], f.Vertices[j] = f.Vertices[j], f.Vertices[i]
 	}
+}
+
+func (f *Face3D) ShareVertices(other *Face3D) bool {
+	for _, vertex := range f.Vertices {
+		for _, otherVertex := range other.Vertices {
+			if vertex == otherVertex {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (f *Face3D) Reverse() {
@@ -278,14 +316,6 @@ func (f *Face3D) To2D() *Face2D {
 	points2D := earcut3d.ProjectShapeTo2D(inputFace, basis)
 	face2D := NewFace2D(points2D...)
 	refPoint := f.Vertices[0]
-
-	//println()
-	//points3D := earcut3d.ProjectShapeTo3D(points2D, basis, []float64{refPoint.X, refPoint.Y, refPoint.Z})
-	//fmt.Println("In To2D", basis, []float64{refPoint.X, refPoint.Y, refPoint.Z})
-	//fmt.Println("Before:", points2D)
-	//fmt.Println("After:", points3D)
-	//fmt.Println("Sanity test:", earcut3d.ProjectShapeTo3D([]float64{0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1}, basis, []float64{refPoint.X, refPoint.Y, refPoint.Z}))
-	//println()
 
 	face2D.PD = &ProjectionDetails{basis, [3]float64{refPoint.X, refPoint.Y, refPoint.Z}, f}
 	return face2D

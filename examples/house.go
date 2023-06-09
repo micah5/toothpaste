@@ -11,24 +11,22 @@ func main() {
 	sides := []string{"front", "right", "back", "left"}
 	pane := toothpaste.Square(w/2, d/2)
 	pane.Translate(w/4, d/4)
-	//panes := make(map[string]*toothpaste.Face2D)
-	//for i := 0; i < len(sides); i++ {
-	//	hole := pane.Copy()
-	//	hole.Translate((w/2)*float64(i)+pad/2, (d/2)*float64(i)+pad/2)
-	//	println(i, sides[i])
-	//	panes[sides[i]] = hole
-	//}
 
 	// Create house
 	node := toothpaste.NewNode(toothpaste.Square(w, d).To3D())
-	node.ExtrudeFlip(h, append([]string{"top"}, sides...)...)
+	roof := node.ExtrudeFlip(h, append([]string{"top"}, sides...)...)
 
 	// Add windows
 	group := node.GetAll(sides...)
 	group.AddHoles(pane)
-	back := node.Get("back")
-	back.ExtrudeInner(h / 4)
+	group.ExtrudeInner(h / 6)
 
-	//node.Center()
+	// Add Roof
+	// Detach roof from rest of house otherwise when we resize it, the rest of the house will resize too
+	//roof.Detach()
+	roof.Mul2D(1.2)
+	roof = roof
+
+	node.Center()
 	node.Generate("house.obj")
 }
