@@ -91,6 +91,10 @@ func (f *Face2D) Mul(magnitude float64) {
 
 func (inner *Face2D) Fit2D(outer *Face2D) {
 	inner.PercShape = inner.Copy()
+	// Flip the inner shape upside down
+	for _, vertex := range inner.Vertices {
+		vertex.Y = 1.0 - vertex.Y
+	}
 	result, err := fitter.Transform(inner.Flatten(), outer.Flatten())
 	if err != nil {
 		println(err)
