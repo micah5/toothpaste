@@ -1,7 +1,6 @@
 package toothpaste
 
 import (
-	"fmt"
 	"github.com/micah5/earcut-3d"
 )
 
@@ -104,39 +103,23 @@ func (n *Node) RealignConnectedInner() {
 	connected := n.Connected()
 	for _, node := range connected {
 		for _, hole := range node.Inner {
-			//fmt.Println("Before", hole)
-			//inner2D := hole.To2D()
-			//inner2D.PD.Basis = outer2D.PD.Basis
-			////inner2D.PD.RefPoint = outer2D.PD.RefPoint
-			//inner3D := inner2D.To3D(false)
-			//fmt.Println("After", inner3D)
-			//fmt.Println("Before 3D", hole.Vertices)
 			percShape := hole.PercShape.Copy()
-			//fmt.Println("Before", percShape)
 			percShape.Fit3D(node.Outer)
-			//fmt.Println("After", percShape)
 			res := percShape.To3D(true)
-			fmt.Println("After 3D", res)
 			for i, v := range hole.Vertices {
 				v.X = res.Vertices[i].X
 				v.Y = res.Vertices[i].Y
 				v.Z = res.Vertices[i].Z
 			}
-			//for i, v := range hole.Vertices {
-			//	v.X = inner3D.Vertices[i].X
-			//	v.Y = inner3D.Vertices[i].Y
-			//	v.Z = inner3D.Vertices[i].Z
-			//}
 		}
 	}
 }
 
-func (n *Node) Detach() {
+func (n *Node) Detach() *Node {
+	n.Drop()
 	tmp := n.Copy()
-	tmp.Next = n.Next
-	tmp.Prev = n.Prev
-	//n.Drop()
-	n = tmp
+	n.Prev.InsertAfter(tmp)
+	return tmp
 }
 
 func (n *Node) Copy() *Node {
@@ -148,8 +131,30 @@ func (n *Node) Copy() *Node {
 }
 
 func (n *Node) Drop() {
-	n.Prev.Next = n.Next
-	n.Next.Prev = n.Prev
+	if n.Prev != nil {
+		n.Prev.Next = n.Next
+	}
+	if n.Next != nil {
+		n.Next.Prev = n.Prev
+	}
+}
+
+func (n *Node) InsertAfter(node *Node) {
+	if n.Next != nil {
+		n.Next.Prev = node
+	}
+	node.Next = n.Next
+	node.Prev = n
+	n.Next = node
+}
+
+func (n *Node) InsertBefore(node *Node) {
+	if n.Prev != nil {
+		n.Prev.Next = node
+	}
+	node.Prev = n.Prev
+	node.Next = n
+	n.Prev = node
 }
 
 func (n *Node) Remove() {
@@ -189,6 +194,7 @@ func (n *Node) Translate2D(x, y float64) {
 	for _, f := range faces {
 		f.Translate2D(x, y)
 	}
+	n.RealignConnectedInner()
 }
 
 func (n *Node) Rotate2D(deg int) {
@@ -196,6 +202,7 @@ func (n *Node) Rotate2D(deg int) {
 	for _, f := range faces {
 		f.Rotate2D(deg)
 	}
+	n.RealignConnectedInner()
 }
 
 func (n *Node) Scale2D(x, y float64) {
@@ -203,6 +210,7 @@ func (n *Node) Scale2D(x, y float64) {
 	for _, f := range faces {
 		f.Scale2D(x, y)
 	}
+	n.RealignConnectedInner()
 }
 
 func (n *Node) Mul2D(m float64) {
