@@ -407,6 +407,12 @@ func (ns Nodes) ExtrudeDrop(height float64, tags ...string) Nodes {
 	return nodes
 }
 
+func (ns Nodes) Drop() {
+	for _, node := range ns {
+		node.Drop()
+	}
+}
+
 func (ns Nodes) ExtrudeInner(height float64, tags ...string) Nodes {
 	var nodes Nodes
 	for _, node := range ns {
@@ -418,6 +424,30 @@ func (ns Nodes) ExtrudeInner(height float64, tags ...string) Nodes {
 func (ns Nodes) AddHoles(holes2D ...*Face2D) {
 	for _, node := range ns {
 		node.AddHoles(holes2D...)
+	}
+}
+
+func (ns Nodes) Mul2D(magnitude float64) {
+	for _, node := range ns {
+		node.Mul2D(magnitude)
+	}
+}
+
+func (ns Nodes) Scale2D(x, y float64) {
+	for _, node := range ns {
+		node.Scale2D(x, y)
+	}
+}
+
+func (ns Nodes) Rotate2D(deg int) {
+	for _, node := range ns {
+		node.Rotate2D(deg)
+	}
+}
+
+func (ns Nodes) Translate2D(x, y float64) {
+	for _, node := range ns {
+		node.Translate2D(x, y)
 	}
 }
 
@@ -467,13 +497,22 @@ func extrude(n *Node, faces []*Face3D, height float64, addHoles bool, tags ...st
 				topV1 = holes[k-1].Vertices[i1]
 				topV2 = holes[k-1].Vertices[i2]
 			}
-			sideFace := &Face3D{
-				Vertices: []*Vertex3D{
-					topV1,
-					topV2,
-					v2,
+			vertices := []*Vertex3D{
+				topV1,
+				topV2,
+				v2,
+				v1,
+			}
+			if height < 0 {
+				vertices = []*Vertex3D{
 					v1,
-				},
+					v2,
+					topV2,
+					topV1,
+				}
+			}
+			sideFace := &Face3D{
+				Vertices: vertices,
 			}
 			if k != 0 {
 				sideFace.Flip()

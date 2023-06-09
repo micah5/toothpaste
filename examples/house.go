@@ -40,6 +40,6 @@ func main() {
 	roof.Mul2D(1.2)
 	roof.ExtrudePoint(h / 2)
 
-	//node.Center()
+	node.Center()
 	node.Generate("house.obj")
 }
