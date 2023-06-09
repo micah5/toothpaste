@@ -377,6 +377,27 @@ func (ns Nodes) Translate(x, y, z float64) {
 	}
 }
 
+func (ns Nodes) Mul(magnitude float64) {
+	uniques := ns.UniqueVertices()
+	for _, v := range uniques {
+		v.Mul(magnitude)
+	}
+}
+
+func (ns Nodes) Scale(x, y, z float64) {
+	uniques := ns.UniqueVertices()
+	for _, v := range uniques {
+		v.Scale(x, y, z)
+	}
+}
+
+func (ns Nodes) Rotate(deg int, axis Axis) {
+	uniques := ns.UniqueVertices()
+	for _, v := range uniques {
+		v.Rotate(deg, axis)
+	}
+}
+
 func (ns Nodes) Flip() {
 	for _, node := range ns {
 		node.Flip()
@@ -449,6 +470,14 @@ func (ns Nodes) Translate2D(x, y float64) {
 	for _, node := range ns {
 		node.Translate2D(x, y)
 	}
+}
+
+func (ns Nodes) Get(tag string) Nodes {
+	return ns[0].GetAll(tag)
+}
+
+func (ns Nodes) GetAll(tag string) Nodes {
+	return ns[0].GetAll(tag)
 }
 
 // utils

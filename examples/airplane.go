@@ -11,7 +11,7 @@ func main() {
 	fuselage := toothpaste.NewNode(toothpaste.Circle(w, d, 10).To3D(toothpaste.ZAxis))
 
 	// tag the backs as "inner" so we can remove it later when we are done extruding
-	back := fuselage.Extrude(h, "inner")
+	back := fuselage.Extrude(h/2, "inner")
 
 	// **tailfin**
 	// body of airplane
@@ -38,13 +38,22 @@ func main() {
 	flapEnd.Mul2D(0.5)
 
 	// ***middle of plane***
-	fuselage = fuselage.Extrude(-2*h/3, "inner", "", "", "", "", "", "wing", "", "", "", "wing")
+	fuselage = fuselage.Extrude(-h, "inner", "", "", "", "", "", "wing", "", "", "", "wing")
 
 	// wings
 	hump := fuselage.GetAll("wing")
-	hump.ExtrudeDrop(-h / 12)
+	hump = hump.ExtrudeDrop(-h / 16)
 	hump.Mul2D(0.5)
-	//hump.Rotate(20, toothpaste.ZAxis)
+	hump[0].Rotate(16, toothpaste.ZAxis)
+	hump[1].Rotate(-16, toothpaste.ZAxis)
+	wing := hump.ExtrudeDrop(-h / 3)
+	wing.Mul2D(0.8)
+	wing.Translate(0, 0.2, -0.5)
+	wing = wing.ExtrudeDrop(-2 * h / 3)
+	wing.Scale2D(0.3, 1)
+	wing.Translate(0, 0.5, -1.0)
+	tip := wing.ExtrudeDrop(-0.1, "", "top")
+	tip.Get("top").ExtrudeDrop(-1.0)
 
 	// remove the inner parts of the fuselage
 	fuselage.GetAll("inner").Drop()
