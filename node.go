@@ -55,11 +55,33 @@ func (n *Node) ExtrudeInner(height float64, tags ...string) Nodes {
 	for _, f := range n.Inner {
 		res := extrude(n, []*Face3D{f}, height, false, tags...)
 		res.Flip()
-		//prevN := res.GetPrev(len(f.Vertices))
-		//prevN.Flip()
 		tops = append(tops, res)
 	}
 	return tops
+}
+
+func (n *Node) ExtrudePoint(height float64, tags ...string) *Node {
+	cen := n.Outer.Centroid()
+	normal := n.Outer.Normal()
+	normal.Mul(-1)
+	cen.Translate(normal.X*height, normal.Y*height, normal.Z*height)
+
+	// loop through every pair of vertices and create a triangle face
+	// with the centroid
+	var cur *Node = n
+	for i := 0; i < len(n.Outer.Vertices); i++ {
+		v1 := n.Outer.Vertices[i]
+		v2 := n.Outer.Vertices[(i+1)%len(n.Outer.Vertices)]
+		f := &Face3D{
+			Vertices: []*Vertex3D{cen, v2, v1},
+		}
+		newNode := NewTaggedNode(getTag(i+1, tags), f)
+		cur.Next = newNode
+		newNode.Prev = cur
+		cur = newNode
+	}
+
+	return n
 }
 
 func (n *Node) Faces() []*Face3D {

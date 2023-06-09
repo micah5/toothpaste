@@ -14,11 +14,11 @@ func main() {
 
 	// Create door shape
 	door := toothpaste.Square(w/4, 2*d/3)
-	door.Translate((w-w/4)/2, 0.0)
+	door.Translate((w-w/4)/2, 0.01)
 
 	// Create house
 	node := toothpaste.NewNode(toothpaste.Square(w, d).To3D())
-	roof := node.ExtrudeFlip(h, append([]string{"top", "front"}, sides...)...)
+	roof := node.Extrude(h, append([]string{"top", "front"}, sides...)...)
 
 	// Add windows
 	group := node.GetAll(sides...)
@@ -38,6 +38,7 @@ func main() {
 	// the rest of the house will move with it again too
 	roof = roof.Detach()
 	roof.Mul2D(1.2)
+	roof.ExtrudePoint(h / 2)
 
 	//node.Center()
 	node.Generate("house.obj")
