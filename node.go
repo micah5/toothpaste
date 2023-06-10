@@ -60,6 +60,10 @@ func (n *Node) ExtrudeInner(height float64, tags ...string) Nodes {
 	return tops
 }
 
+func (n *Node) ExtrudeOuter(height float64, tags ...string) *Node {
+	return extrude(n, []*Face3D{n.Outer}, height, false, tags...)
+}
+
 func (n *Node) ExtrudePoint(height float64, tags ...string) *Node {
 	cen := n.Outer.Centroid()
 	normal := n.Outer.Normal()
@@ -153,6 +157,22 @@ func (n *Node) Copy() *Node {
 	return NewTaggedNode(n.Tag, n.Outer.Copy(), holes...)
 }
 
+func (n *Node) CopyAll() Nodes {
+	nodes := n.Nodes()
+	res := Nodes{}
+	var prev *Node
+	for _, node := range nodes {
+		_node := node.Copy()
+		_node.Prev = prev
+		if prev != nil {
+			prev.Next = _node
+		}
+		prev = _node
+		res = append(res, _node)
+	}
+	return res
+}
+
 func (n *Node) Drop() {
 	if n.Prev != nil {
 		n.Prev.Next = n.Next
@@ -205,10 +225,28 @@ func (n *Node) Scale(x, y, z float64) {
 	}
 }
 
+func (n *Node) MoveTo(x, y, z float64) {
+	faces := n.Faces()
+	for _, f := range faces {
+		f.MoveTo(x, y, z)
+	}
+}
+
 func (n *Node) Mul(m float64) {
 	faces := n.Faces()
 	for _, f := range faces {
 		f.Mul(m)
+	}
+}
+
+func (n *Node) Align(n2 *Node) {
+	cen := n.Outer.Centroid()
+	cen2 := n2.Outer.Centroid()
+	nodes := n2.Nodes()
+	uniques := nodes.UniqueVertices()
+	for _, v := range uniques {
+		x, y, z := v.X-cen2.X, v.Y-cen2.Y, v.Z-cen2.Z
+		v.MoveTo(cen.X+x, cen.Y+y, cen.Z+z)
 	}
 }
 
@@ -319,6 +357,27 @@ func (n *Node) Center() {
 	ns := n.Nodes()
 	centroid := ns.Centroid()
 	ns.Translate(-centroid.X, -centroid.Y, -centroid.Z)
+}
+
+func (n *Node) Attach(node *Node) {
+	node.Align(n)
+	node.Last().InsertBefore(n.First())
+}
+
+func (n *Node) First() *Node {
+	cur := n
+	for cur.Prev != nil {
+		cur = cur.Prev
+	}
+	return cur
+}
+
+func (n *Node) Last() *Node {
+	cur := n
+	for cur.Next != nil {
+		cur = cur.Next
+	}
+	return cur
 }
 
 func (n *Node) Reverse() {
@@ -478,6 +537,14 @@ func (ns Nodes) Get(tag string) Nodes {
 
 func (ns Nodes) GetAll(tag string) Nodes {
 	return ns[0].GetAll(tag)
+}
+
+func (ns Nodes) Attach(node *Node) {
+	ns[0].Attach(node)
+	/*for _, n := range ns {
+		//_node := node.CopyAll()
+		n.Attach(node)
+	}*/
 }
 
 // utils

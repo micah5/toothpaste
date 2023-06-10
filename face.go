@@ -218,6 +218,11 @@ func (f *Face3D) Translate(x, y, z float64) {
 	}
 }
 
+func (f *Face3D) MoveTo(x, y, z float64) {
+	cen := f.Centroid()
+	f.Translate(x-cen.X, y-cen.Y, z-cen.Z)
+}
+
 func (f *Face3D) Scale(x, y, z float64) {
 	cen := f.Centroid()
 	f.Translate(-cen.X, -cen.Y, -cen.Z)
