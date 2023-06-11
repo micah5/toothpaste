@@ -154,10 +154,37 @@ func (n *Node) Copy() *Node {
 
 func (n *Node) CopyAll() Nodes {
 	nodes := n.Nodes()
+	uniques := nodes.UniqueVertices()
+	// copy vertices
+	uniques2 := make([]*Vertex3D, 0)
+	for _, v := range uniques {
+		uniques2 = append(uniques2, v.Copy())
+	}
 	res := Nodes{}
 	var prev *Node
 	for _, node := range nodes {
-		_node := node.Copy()
+		// lookup new vertices
+		verts := make([]*Vertex3D, len(node.Outer.Vertices))
+		for i, v := range node.Outer.Vertices {
+			for j, v2 := range uniques {
+				if v == v2 {
+					verts[i] = uniques2[j]
+				}
+			}
+		}
+		holes := make([]*Face3D, len(node.Inner))
+		for i, f := range node.Inner {
+			verts := make([]*Vertex3D, len(f.Vertices))
+			for i, v := range f.Vertices {
+				for j, v2 := range uniques {
+					if v == v2 {
+						verts[i] = uniques2[j]
+					}
+				}
+			}
+			holes[i] = &Face3D{Vertices: verts}
+		}
+		_node := NewTaggedNode(node.Tag, &Face3D{Vertices: verts}, holes...)
 		if prev != nil {
 			prev.Next = _node
 			_node.Prev = prev
@@ -535,8 +562,8 @@ func (ns Nodes) GetAll(tag string) Nodes {
 }
 
 func (ns Nodes) Attach(node *Node) {
-	//_node := node.CopyAll()[0]
-	ns[0].Attach(node)
+	_node := node.CopyAll()[0]
+	ns[0].Attach(_node)
 	/*for _, n := range ns {
 		//_node := node.CopyAll()
 		n.Attach(node)

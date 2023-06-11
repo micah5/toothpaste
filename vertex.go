@@ -18,6 +18,10 @@ type Vertex2D struct {
 	X, Y float64
 }
 
+func (v *Vertex2D) Copy() *Vertex2D {
+	return &Vertex2D{v.X, v.Y}
+}
+
 func (v *Vertex2D) Translate(x, y float64) {
 	v.X += x
 	v.Y += y
@@ -70,6 +74,10 @@ func (v *Vertex2D) To3D(_axis ...Axis) *Vertex3D {
 // 3D
 type Vertex3D struct {
 	X, Y, Z float64
+}
+
+func (v *Vertex3D) Copy() *Vertex3D {
+	return &Vertex3D{v.X, v.Y, v.Z}
 }
 
 func (v *Vertex3D) Translate(x, y, z float64) {
