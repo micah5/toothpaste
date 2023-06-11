@@ -402,6 +402,13 @@ func (n *Node) Last() *Node {
 	return cur
 }
 
+func (n *Node) TagAll(tag string) {
+	nodes := n.Nodes()
+	for _, node := range nodes {
+		node.Tag = tag
+	}
+}
+
 func (n *Node) Reverse() {
 	n.Flip()
 }
@@ -460,15 +467,21 @@ func (ns Nodes) Translate(x, y, z float64) {
 
 func (ns Nodes) Mul(magnitude float64) {
 	uniques := ns.UniqueVertices()
+	cen := ns.Centroid()
 	for _, v := range uniques {
+		v.Translate(-cen.X, -cen.Y, -cen.Z)
 		v.Mul(magnitude)
+		v.Translate(cen.X, cen.Y, cen.Z)
 	}
 }
 
 func (ns Nodes) Scale(x, y, z float64) {
 	uniques := ns.UniqueVertices()
+	cen := ns.Centroid()
 	for _, v := range uniques {
+		v.Translate(-cen.X, -cen.Y, -cen.Z)
 		v.Scale(x, y, z)
+		v.Translate(cen.X, cen.Y, cen.Z)
 	}
 }
 
@@ -562,12 +575,10 @@ func (ns Nodes) GetAll(tag string) Nodes {
 }
 
 func (ns Nodes) Attach(node *Node) {
-	_node := node.CopyAll()[0]
-	ns[0].Attach(_node)
-	/*for _, n := range ns {
-		//_node := node.CopyAll()
-		n.Attach(node)
-	}*/
+	for _, n := range ns {
+		_node := node.CopyAll()[0]
+		n.Attach(_node)
+	}
 }
 
 // utils

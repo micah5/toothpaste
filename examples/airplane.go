@@ -47,7 +47,7 @@ func main() {
 	hump[0].Rotate(-16, toothpaste.ZAxis)
 	hump[1].Rotate(16, toothpaste.ZAxis)
 	wing := hump.ExtrudeDrop(-h/3, "", "", "b1", "", "b2")
-	wing.Mul2D(0.8)
+	wing.Mul2D(0.7)
 	wing.Translate(0, 0.2, -0.5)
 	wing2 := wing.ExtrudeDrop(-2 * h / 3)
 	wing2.Scale2D(0.3, 1)
@@ -70,25 +70,26 @@ func main() {
 	}
 
 	// engine
-	outer := toothpaste.Circle(w/3, w/3, 8)
-	inner := toothpaste.Circle(w/4, w/4, 8)
-	inner.Translate(w/24, w/24)
+	outer := toothpaste.Circle(w/2, w/2, 8)
+	inner := toothpaste.Circle(w/3, w/3, 8)
+	inner.Translate(w/12, w/12)
 	engine := toothpaste.NewNode(outer.To3D(toothpaste.ZAxis), inner.To3D(toothpaste.ZAxis))
-	intake := engine.Extrude(w / 8)
+	intake := engine.Extrude(w / 4)
 	intake.Mul2D(1.15)
-	engine = intake.ExtrudeOuter(w / 8)
+	engine = intake.ExtrudeOuter(w / 4)
 	intake.Outer = intake.Inner[0]
 	intake.Inner = nil
 	engine.Mul2D(1.15)
-	engine = engine.ExtrudeDrop(w / 4)
+	engine = engine.ExtrudeDrop(w / 2)
 	engine.Mul2D(0.7)
 	engine.Flip()
+	engine.TagAll("engine")
 	// the engine starts off as a seperate node
 	// so we need to attach it to the other nodes
 	// so that it will be included in the final model
-	println(len(fuselage.Nodes()), len(engine.Nodes()))
 	mount.Attach(engine)
-	println(len(fuselage.Nodes()))
+	engines := mount.GetAll("engine")
+	engines.Translate(0, 0, 0.6)
 
 	// remove the inner parts of the fuselage
 	fuselage.GetAll("inner").Drop()
