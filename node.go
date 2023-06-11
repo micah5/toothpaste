@@ -95,16 +95,11 @@ func (n *Node) Faces() []*Face3D {
 }
 
 func (n *Node) Nodes() Nodes {
-	nodes := Nodes{n}
-	cur := n.Next
+	nodes := Nodes{}
+	cur := n.First()
 	for cur != nil {
 		nodes = append(nodes, cur)
 		cur = cur.Next
-	}
-	cur = n.Prev
-	for cur != nil {
-		nodes = append(nodes, cur)
-		cur = cur.Prev
 	}
 	return nodes
 }
@@ -163,9 +158,9 @@ func (n *Node) CopyAll() Nodes {
 	var prev *Node
 	for _, node := range nodes {
 		_node := node.Copy()
-		_node.Prev = prev
 		if prev != nil {
 			prev.Next = _node
+			_node.Prev = prev
 		}
 		prev = _node
 		res = append(res, _node)
@@ -361,7 +356,7 @@ func (n *Node) Center() {
 
 func (n *Node) Attach(node *Node) {
 	node.Align(n)
-	node.Last().InsertBefore(n.First())
+	node.First().InsertBefore(n.Last())
 }
 
 func (n *Node) First() *Node {
@@ -540,6 +535,7 @@ func (ns Nodes) GetAll(tag string) Nodes {
 }
 
 func (ns Nodes) Attach(node *Node) {
+	//_node := node.CopyAll()[0]
 	ns[0].Attach(node)
 	/*for _, n := range ns {
 		//_node := node.CopyAll()
