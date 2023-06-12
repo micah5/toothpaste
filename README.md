@@ -2,6 +2,8 @@
 
 Go library to create 3D models by extruding from a 2D shape outwards. Contains several convenient functions to construct, manipulate, and export the geometries.
 
+![output](https://github.com/micah5/toothpaste/assets/40206415/a8aad023-4dc4-4db2-8099-0aba680cf477)
+
 ## Installation
 
 ```
