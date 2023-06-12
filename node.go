@@ -54,6 +54,7 @@ func (n *Node) ExtrudeInner(height float64, tags ...string) Nodes {
 	tops := make(Nodes, len(n.Inner))
 	for _, f := range n.Inner {
 		res := extrude(n, []*Face3D{f}, height, false, tags...)
+		res.GetPrev(len(f.Vertices)).Flip()
 		res.Flip()
 		tops = append(tops, res)
 	}

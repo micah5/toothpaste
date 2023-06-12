@@ -91,6 +91,14 @@ func main() {
 	engines := mount.GetAll("engine")
 	engines.Translate(0, 0, 0.6)
 
+	// ***front of plane***
+	fuselage = fuselage.ExtrudeDrop(-h/3, "inner")
+
+	// cockpit
+	cockpit := fuselage.ExtrudeDrop(-h / 4)
+	cockpit.Mul2D(0.5)
+	cockpit.Rotate(-30, toothpaste.XAxis)
+
 	// remove the inner parts of the fuselage
 	fuselage.GetAll("inner").Drop()
 

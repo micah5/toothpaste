@@ -10,7 +10,7 @@ func main() {
 	inner := toothpaste.Circle(w/2, d/2, 20)
 	inner.Translate(w/4, d/4)
 	node := toothpaste.NewNode(outer.To3D(toothpaste.ZAxis), inner.To3D(toothpaste.ZAxis))
-	top := node.ExtrudeFlip(h)
+	node = node.ExtrudeFlip(h)
 	node.Center()
 	node.Generate("wheel.obj")
 }
