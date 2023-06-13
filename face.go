@@ -47,19 +47,27 @@ func (f *Face2D) Translate(x, y float64) {
 func (f *Face2D) Scale(x, y float64) {
 	cen := f.Centroid()
 	f.Translate(-cen.X, -cen.Y)
+	f.ScaleFixed(x, y)
+	f.Translate(cen.X, cen.Y)
+}
+
+func (f *Face2D) ScaleFixed(x, y float64) {
 	for _, vertex := range f.Vertices {
 		vertex.Scale(x, y)
 	}
-	f.Translate(cen.X, cen.Y)
 }
 
 func (f *Face2D) Rotate(deg int) {
 	cen := f.Centroid()
 	f.Translate(-cen.X, -cen.Y)
+	f.RotateFixed(deg)
+	f.Translate(cen.X, cen.Y)
+}
+
+func (f *Face2D) RotateFixed(deg int) {
 	for _, vertex := range f.Vertices {
 		vertex.Rotate(deg)
 	}
-	f.Translate(cen.X, cen.Y)
 }
 
 func (f *Face2D) ContainsExact(v *Vertex2D) bool {
@@ -80,12 +88,16 @@ func (f *Face2D) Flatten() []float64 {
 	return flattened
 }
 
-func (f *Face2D) Mul(magnitude float64) {
-	cen := f.Centroid()
-	f.Translate(-cen.X, -cen.Y)
+func (f *Face2D) MulFixed(magnitude float64) {
 	for _, vertex := range f.Vertices {
 		vertex.Mul(magnitude)
 	}
+}
+
+func (f *Face2D) Mul(magnitude float64) {
+	cen := f.Centroid()
+	f.Translate(-cen.X, -cen.Y)
+	f.MulFixed(magnitude)
 	f.Translate(cen.X, cen.Y)
 }
 
@@ -223,30 +235,42 @@ func (f *Face3D) MoveTo(x, y, z float64) {
 	f.Translate(x-cen.X, y-cen.Y, z-cen.Z)
 }
 
-func (f *Face3D) Scale(x, y, z float64) {
-	cen := f.Centroid()
-	f.Translate(-cen.X, -cen.Y, -cen.Z)
+func (f *Face3D) ScaleFixed(x, y, z float64) {
 	for _, vertex := range f.Vertices {
 		vertex.Scale(x, y, z)
 	}
+}
+
+func (f *Face3D) Scale(x, y, z float64) {
+	cen := f.Centroid()
+	f.Translate(-cen.X, -cen.Y, -cen.Z)
+	f.ScaleFixed(x, y, z)
 	f.Translate(cen.X, cen.Y, cen.Z)
+}
+
+func (f *Face3D) MulFixed(magnitude float64) {
+	for _, vertex := range f.Vertices {
+		vertex.Mul(magnitude)
+	}
 }
 
 func (f *Face3D) Mul(magnitude float64) {
 	cen := f.Centroid()
 	f.Translate(-cen.X, -cen.Y, -cen.Z)
-	for _, vertex := range f.Vertices {
-		vertex.Mul(magnitude)
-	}
+	f.MulFixed(magnitude)
 	f.Translate(cen.X, cen.Y, cen.Z)
+}
+
+func (f *Face3D) RotateFixed(deg int, axis Axis) {
+	for _, vertex := range f.Vertices {
+		vertex.Rotate(deg, axis)
+	}
 }
 
 func (f *Face3D) Rotate(deg int, axis Axis) {
 	cen := f.Centroid()
 	f.Translate(-cen.X, -cen.Y, -cen.Z)
-	for _, vertex := range f.Vertices {
-		vertex.Rotate(deg, axis)
-	}
+	f.RotateFixed(deg, axis)
 	f.Translate(cen.X, cen.Y, cen.Z)
 }
 

@@ -241,10 +241,24 @@ func (n *Node) Rotate(deg int, axis Axis) {
 	}
 }
 
+func (n *Node) RotateFixed(deg int, axis Axis) {
+	faces := n.Faces()
+	for _, f := range faces {
+		f.RotateFixed(deg, axis)
+	}
+}
+
 func (n *Node) Scale(x, y, z float64) {
 	faces := n.Faces()
 	for _, f := range faces {
 		f.Scale(x, y, z)
+	}
+}
+
+func (n *Node) ScaleFixed(x, y, z float64) {
+	faces := n.Faces()
+	for _, f := range faces {
+		f.ScaleFixed(x, y, z)
 	}
 }
 
@@ -259,6 +273,13 @@ func (n *Node) Mul(m float64) {
 	faces := n.Faces()
 	for _, f := range faces {
 		f.Mul(m)
+	}
+}
+
+func (n *Node) MulFixed(m float64) {
+	faces := n.Faces()
+	for _, f := range faces {
+		f.MulFixed(m)
 	}
 }
 
