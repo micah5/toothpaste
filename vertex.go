@@ -84,6 +84,13 @@ func (v *Vertex3D) Copy() *Vertex3D {
 	return &Vertex3D{v.X, v.Y, v.Z}
 }
 
+func (v *Vertex3D) Round(precision int) {
+	multiplier := math.Pow(10, float64(precision))
+	v.X = math.Round(v.X*multiplier) / multiplier
+	v.Y = math.Round(v.Y*multiplier) / multiplier
+	v.Z = math.Round(v.Z*multiplier) / multiplier
+}
+
 func (v *Vertex3D) Distance(v2 *Vertex3D) float64 {
 	return math.Sqrt(math.Pow(v.X-v2.X, 2) + math.Pow(v.Y-v2.Y, 2) + math.Pow(v.Z-v2.Z, 2))
 }

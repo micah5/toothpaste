@@ -211,6 +211,13 @@ func (n *Node) RotateFixed(deg float64, axis Axis) {
 	}
 }
 
+func (n *Node) RoundVertices(precision int) {
+	faces := n.Faces()
+	for _, f := range faces {
+		f.RoundVertices(precision)
+	}
+}
+
 func (n *Node) Scale(x, y, z float64) {
 	faces := n.Faces()
 	for _, f := range faces {
@@ -443,59 +450,6 @@ func (ns Nodes) UniqueVertices() []*Vertex3D {
 	return vertices
 }
 
-func (ns Nodes) VerticesWithinThreshold(threshold float64) []*Vertex3D {
-	clusters := ns.GroupVerticesWithinThreshold(threshold)
-	var vertices []*Vertex3D
-	for _, cluster := range clusters {
-		vertices = append(vertices, cluster[0])
-	}
-	return vertices
-}
-
-func (ns Nodes) GroupVerticesWithinThreshold(threshold float64) [][]*Vertex3D {
-	allVertices := ns.UniqueVertices()
-	visited := make(map[int]bool)
-	isCore := make(map[int]bool)
-	clusters := make([][]*Vertex3D, 0)
-
-	for i := range allVertices {
-		if visited[i] {
-			continue
-		}
-		visited[i] = true
-		neighbors := getNeighbors(i, allVertices, threshold)
-
-		if len(neighbors) >= 1 { // the point itself is also considered in neighbors
-			isCore[i] = true
-			newCluster := make([]*Vertex3D, 0)
-			newCluster = append(newCluster, allVertices[i])
-
-			for j := range neighbors {
-				if !visited[j] {
-					visited[j] = true
-					newCluster = append(newCluster, allVertices[j])
-				}
-			}
-			clusters = append(clusters, newCluster)
-		}
-	}
-
-	return clusters
-}
-
-func getNeighbors(i int, vertices []*Vertex3D, threshold float64) []int {
-	neighbors := make([]int, 0)
-	for j := range vertices {
-		if i == j {
-			continue
-		}
-		if vertices[i].Distance(vertices[j]) <= threshold {
-			neighbors = append(neighbors, j)
-		}
-	}
-	return neighbors
-}
-
 func (ns Nodes) Translate(x, y, z float64) {
 	uniques := ns.UniqueVertices()
 	for _, v := range uniques {
@@ -674,21 +628,9 @@ func (ns Nodes) LinkVertices() {
 	}
 }
 
-func (ns Nodes) LinkVerticesThreshold(threshold float64) {
-	// same as LinkVertices but instead of checking for an exact match
-	// it checks if the vertices are within a certain distance of each other
-	uniques := ns.VerticesWithinThreshold(threshold)
+func (ns Nodes) RoundVertices(precision int) {
 	for _, node := range ns {
-		faces := node.Faces()
-		for _, face := range faces {
-			for i, v := range face.Vertices {
-				for _, v2 := range uniques {
-					if v.Distance(v2) < threshold {
-						face.Vertices[i] = v2
-					}
-				}
-			}
-		}
+		node.RoundVertices(precision)
 	}
 }
 

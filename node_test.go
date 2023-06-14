@@ -94,10 +94,10 @@ func TestLinkVertices(t *testing.T) {
 	}
 }
 
-func TestLinkVerticesThreshold(t *testing.T) {
+func TestRoundVertices(t *testing.T) {
 	nodes := Nodes{
 		NewNode(NewFace3D(
-			0, 1, 0,
+			0, 1.001, 0,
 			0, 1, -2,
 			0, 0, -2,
 			0, 0, 0,
@@ -115,12 +115,9 @@ func TestLinkVerticesThreshold(t *testing.T) {
 			1, 0, -3,
 		)),
 	}
+	nodes.RoundVertices(1)
 	uniques := nodes.UniqueVertices()
-	if checkIfUnique(nodes, uniques) != false {
-		t.Errorf("If this triggers then there's a problem with this test case")
-	}
-	nodes.LinkVerticesThreshold(0.1)
-	if checkIfUnique(nodes, uniques) != true {
-		t.Errorf("Expected all vertices to be unique, got %v", nodes.UniqueVertices())
+	if len(uniques) != 6 {
+		t.Errorf("Expected 6 unique vertices, got %v", len(uniques))
 	}
 }

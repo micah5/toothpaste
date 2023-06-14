@@ -298,6 +298,12 @@ func (f *Face3D) Rotate2D(deg float64) {
 	f = face2D.To3D(false)
 }
 
+func (f *Face3D) RoundVertices(precision int) {
+	for _, vertex := range f.Vertices {
+		vertex.Round(precision)
+	}
+}
+
 func (f *Face3D) Flatten() []float64 {
 	flattened := make([]float64, len(f.Vertices)*3)
 	for i, vertex := range f.Vertices {
