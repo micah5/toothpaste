@@ -52,6 +52,10 @@ func (v *Vertex2D) String() string {
 	return fmt.Sprintf("{%f, %f}", v.X, v.Y)
 }
 
+func (v *Vertex2D) Distance(v2 *Vertex2D) float64 {
+	return math.Sqrt(math.Pow(v.X-v2.X, 2) + math.Pow(v.Y-v2.Y, 2))
+}
+
 func (v *Vertex2D) To3D(_axis ...Axis) *Vertex3D {
 	var axis Axis
 	if len(_axis) == 0 {
@@ -78,6 +82,10 @@ type Vertex3D struct {
 
 func (v *Vertex3D) Copy() *Vertex3D {
 	return &Vertex3D{v.X, v.Y, v.Z}
+}
+
+func (v *Vertex3D) Distance(v2 *Vertex3D) float64 {
+	return math.Sqrt(math.Pow(v.X-v2.X, 2) + math.Pow(v.Y-v2.Y, 2) + math.Pow(v.Z-v2.Z, 2))
 }
 
 func (v *Vertex3D) Translate(x, y, z float64) {
