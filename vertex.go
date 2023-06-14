@@ -108,8 +108,8 @@ func (v *Vertex3D) Rotate(deg int, axis Axis) {
 		v.Y = newY
 		v.Z = newZ
 	case YAxis:
-		newX = v.X*math.Cos(angle) - v.Z*math.Sin(angle)
-		newZ = v.X*math.Sin(angle) + v.Z*math.Cos(angle)
+		newX = v.X*math.Cos(angle) + v.Z*math.Sin(angle)
+		newZ = -v.X*math.Sin(angle) + v.Z*math.Cos(angle)
 		v.X = newX
 		v.Z = newZ
 	case ZAxis:
