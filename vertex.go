@@ -129,3 +129,7 @@ func (v *Vertex3D) MoveTo(x, y, z float64) {
 func (v *Vertex3D) String() string {
 	return fmt.Sprintf("{%f, %f, %f}", v.X, v.Y, v.Z)
 }
+
+func (v *Vertex3D) Equals(v2 *Vertex3D) bool {
+	return v.X == v2.X && v.Y == v2.Y && v.Z == v2.Z
+}

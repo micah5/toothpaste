@@ -155,44 +155,7 @@ func (n *Node) Copy() *Node {
 
 func (n *Node) CopyAll() Nodes {
 	nodes := n.Nodes()
-	uniques := nodes.UniqueVertices()
-	// copy vertices
-	uniques2 := make([]*Vertex3D, 0)
-	for _, v := range uniques {
-		uniques2 = append(uniques2, v.Copy())
-	}
-	res := Nodes{}
-	var prev *Node
-	for _, node := range nodes {
-		// lookup new vertices
-		verts := make([]*Vertex3D, len(node.Outer.Vertices))
-		for i, v := range node.Outer.Vertices {
-			for j, v2 := range uniques {
-				if v == v2 {
-					verts[i] = uniques2[j]
-				}
-			}
-		}
-		holes := make([]*Face3D, len(node.Inner))
-		for i, f := range node.Inner {
-			verts := make([]*Vertex3D, len(f.Vertices))
-			for i, v := range f.Vertices {
-				for j, v2 := range uniques {
-					if v == v2 {
-						verts[i] = uniques2[j]
-					}
-				}
-			}
-			holes[i] = &Face3D{Vertices: verts}
-		}
-		_node := NewTaggedNode(node.Tag, &Face3D{Vertices: verts}, holes...)
-		if prev != nil {
-			prev.Next = _node
-			_node.Prev = prev
-		}
-		prev = _node
-		res = append(res, _node)
-	}
+	res := nodes.CopyAll()
 	return res
 }
 
@@ -536,6 +499,50 @@ func (ns Nodes) ExtrudeFlip(height float64, tags ...string) Nodes {
 	return nodes
 }
 
+func (nodes Nodes) CopyAll() Nodes {
+	uniques := nodes.UniqueVertices()
+
+	// copy vertices
+	uniques2 := make([]*Vertex3D, 0)
+	for _, v := range uniques {
+		uniques2 = append(uniques2, v.Copy())
+	}
+	res := Nodes{}
+	var prev *Node
+	for _, node := range nodes {
+		// lookup new vertices
+		verts := make([]*Vertex3D, len(node.Outer.Vertices))
+		for i, v := range node.Outer.Vertices {
+			for j, v2 := range uniques {
+				if v == v2 {
+					verts[i] = uniques2[j]
+				}
+			}
+		}
+		holes := make([]*Face3D, len(node.Inner))
+		for i, f := range node.Inner {
+			verts := make([]*Vertex3D, len(f.Vertices))
+			for i, v := range f.Vertices {
+				for j, v2 := range uniques {
+					if v == v2 {
+						verts[i] = uniques2[j]
+					}
+				}
+			}
+			holes[i] = &Face3D{Vertices: verts}
+		}
+		_node := NewTaggedNode(node.Tag, &Face3D{Vertices: verts}, holes...)
+		if prev != nil {
+			prev.Next = _node
+			_node.Prev = prev
+		}
+		prev = _node
+		res = append(res, _node)
+	}
+
+	return res
+}
+
 func (ns Nodes) ExtrudeDrop(height float64, tags ...string) Nodes {
 	var nodes Nodes
 	for _, node := range ns {
@@ -594,6 +601,24 @@ func (ns Nodes) Get(tag string) Nodes {
 
 func (ns Nodes) GetAll(tag string) Nodes {
 	return ns[0].GetAll(tag)
+}
+
+func (ns Nodes) LinkVertices() {
+	uniques := ns.UniqueVertices()
+	for _, node := range ns {
+		// check if vertices are in uniques
+		// and if so replace them with the unique vertex
+		faces := node.Faces()
+		for _, face := range faces {
+			for i, v := range face.Vertices {
+				for _, v2 := range uniques {
+					if v.Equals(v2) {
+						face.Vertices[i] = v2
+					}
+				}
+			}
+		}
+	}
 }
 
 func (ns Nodes) Attach(node *Node) {
