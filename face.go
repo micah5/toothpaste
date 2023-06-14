@@ -57,14 +57,14 @@ func (f *Face2D) ScaleFixed(x, y float64) {
 	}
 }
 
-func (f *Face2D) Rotate(deg int) {
+func (f *Face2D) Rotate(deg float64) {
 	cen := f.Centroid()
 	f.Translate(-cen.X, -cen.Y)
 	f.RotateFixed(deg)
 	f.Translate(cen.X, cen.Y)
 }
 
-func (f *Face2D) RotateFixed(deg int) {
+func (f *Face2D) RotateFixed(deg float64) {
 	for _, vertex := range f.Vertices {
 		vertex.Rotate(deg)
 	}
@@ -261,13 +261,13 @@ func (f *Face3D) Mul(magnitude float64) {
 	f.Translate(cen.X, cen.Y, cen.Z)
 }
 
-func (f *Face3D) RotateFixed(deg int, axis Axis) {
+func (f *Face3D) RotateFixed(deg float64, axis Axis) {
 	for _, vertex := range f.Vertices {
 		vertex.Rotate(deg, axis)
 	}
 }
 
-func (f *Face3D) Rotate(deg int, axis Axis) {
+func (f *Face3D) Rotate(deg float64, axis Axis) {
 	cen := f.Centroid()
 	f.Translate(-cen.X, -cen.Y, -cen.Z)
 	f.RotateFixed(deg, axis)
@@ -292,7 +292,7 @@ func (f *Face3D) Mul2D(magnitude float64) {
 	f = face2D.To3D(false)
 }
 
-func (f *Face3D) Rotate2D(deg int) {
+func (f *Face3D) Rotate2D(deg float64) {
 	face2D := f.To2D()
 	face2D.Rotate(deg)
 	f = face2D.To3D(false)

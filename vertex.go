@@ -37,7 +37,7 @@ func (v *Vertex2D) Mul(m float64) {
 	v.Y *= m
 }
 
-func (v *Vertex2D) Rotate(deg int) {
+func (v *Vertex2D) Rotate(deg float64) {
 	angle := float64(deg) * (math.Pi / 180)
 	v.X = v.X*math.Cos(angle) - v.Y*math.Sin(angle)
 	v.Y = v.X*math.Sin(angle) + v.Y*math.Cos(angle)
@@ -98,7 +98,7 @@ func (v *Vertex3D) Mul(m float64) {
 	v.Z *= m
 }
 
-func (v *Vertex3D) Rotate(deg int, axis Axis) {
+func (v *Vertex3D) Rotate(deg float64, axis Axis) {
 	angle := float64(deg) * (math.Pi / 180)
 	var newX, newY, newZ float64
 	switch axis {

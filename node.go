@@ -234,14 +234,14 @@ func (n *Node) Translate(x, y, z float64) {
 	}
 }
 
-func (n *Node) Rotate(deg int, axis Axis) {
+func (n *Node) Rotate(deg float64, axis Axis) {
 	faces := n.Faces()
 	for _, f := range faces {
 		f.Rotate(deg, axis)
 	}
 }
 
-func (n *Node) RotateFixed(deg int, axis Axis) {
+func (n *Node) RotateFixed(deg float64, axis Axis) {
 	faces := n.Faces()
 	for _, f := range faces {
 		f.RotateFixed(deg, axis)
@@ -302,7 +302,7 @@ func (n *Node) Translate2D(x, y float64) {
 	n.RealignConnectedInner()
 }
 
-func (n *Node) Rotate2D(deg int) {
+func (n *Node) Rotate2D(deg float64) {
 	faces := n.Faces()
 	for _, f := range faces {
 		f.Rotate2D(deg)
@@ -507,7 +507,7 @@ func (ns Nodes) Scale(x, y, z float64) {
 	}
 }
 
-func (ns Nodes) Rotate(deg int, axis Axis) {
+func (ns Nodes) Rotate(deg float64, axis Axis) {
 	uniques := ns.UniqueVertices()
 	for _, v := range uniques {
 		v.Rotate(deg, axis)
@@ -576,7 +576,7 @@ func (ns Nodes) Scale2D(x, y float64) {
 	}
 }
 
-func (ns Nodes) Rotate2D(deg int) {
+func (ns Nodes) Rotate2D(deg float64) {
 	for _, node := range ns {
 		node.Rotate2D(deg)
 	}
