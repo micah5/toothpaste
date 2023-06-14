@@ -100,16 +100,23 @@ func (v *Vertex3D) Mul(m float64) {
 
 func (v *Vertex3D) Rotate(deg int, axis Axis) {
 	angle := float64(deg) * (math.Pi / 180)
+	var newX, newY, newZ float64
 	switch axis {
 	case XAxis:
-		v.Y = v.Y*math.Cos(angle) - v.Z*math.Sin(angle)
-		v.Z = v.Y*math.Sin(angle) + v.Z*math.Cos(angle)
+		newY = v.Y*math.Cos(angle) - v.Z*math.Sin(angle)
+		newZ = v.Y*math.Sin(angle) + v.Z*math.Cos(angle)
+		v.Y = newY
+		v.Z = newZ
 	case YAxis:
-		v.X = v.X*math.Cos(angle) + v.Z*math.Sin(angle)
-		v.Z = -v.X*math.Sin(angle) + v.Z*math.Cos(angle)
+		newX = v.X*math.Cos(angle) - v.Z*math.Sin(angle)
+		newZ = v.X*math.Sin(angle) + v.Z*math.Cos(angle)
+		v.X = newX
+		v.Z = newZ
 	case ZAxis:
-		v.X = v.X*math.Cos(angle) - v.Y*math.Sin(angle)
-		v.Y = v.X*math.Sin(angle) + v.Y*math.Cos(angle)
+		newX = v.X*math.Cos(angle) - v.Y*math.Sin(angle)
+		newY = v.X*math.Sin(angle) + v.Y*math.Cos(angle)
+		v.X = newX
+		v.Y = newY
 	}
 }
 
