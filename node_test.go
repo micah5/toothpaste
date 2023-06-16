@@ -121,3 +121,24 @@ func TestRoundVertices(t *testing.T) {
 		t.Errorf("Expected 6 unique vertices, got %v", len(uniques))
 	}
 }
+
+func TestDimensions(t *testing.T) {
+	node := NewNode(NewFace3D(
+		0, 0, 0,
+		1, 0.75, 0,
+		1, 0.75, 0.5,
+		0, 0, 0.5,
+	))
+	width := node.Width()
+	if width != 1 {
+		t.Errorf("Expected width to be 1, got %v", width)
+	}
+	height := node.Height()
+	if height != 0.75 {
+		t.Errorf("Expected height to be 0.5, got %v", height)
+	}
+	depth := node.Depth()
+	if depth != 0.5 {
+		t.Errorf("Expected depth to be 0, got %v", depth)
+	}
+}

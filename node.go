@@ -89,6 +89,18 @@ func (n *Node) ExtrudePoint(height float64, tags ...string) *Node {
 	return n
 }
 
+func (n *Node) Width() float64 {
+	return n.Outer.Width()
+}
+
+func (n *Node) Height() float64 {
+	return n.Outer.Height()
+}
+
+func (n *Node) Depth() float64 {
+	return n.Outer.Depth()
+}
+
 func (n *Node) Faces() []*Face3D {
 	faces := []*Face3D{n.Outer}
 	faces = append(faces, n.Inner...)

@@ -304,6 +304,51 @@ func (f *Face3D) RoundVertices(precision int) {
 	}
 }
 
+func (f *Face3D) MinMax(axis Axis) (float64, float64) {
+	var min, max float64
+	for _, vertex := range f.Vertices {
+		switch axis {
+		case XAxis:
+			if vertex.X < min {
+				min = vertex.X
+			}
+			if vertex.X > max {
+				max = vertex.X
+			}
+		case YAxis:
+			if vertex.Y < min {
+				min = vertex.Y
+			}
+			if vertex.Y > max {
+				max = vertex.Y
+			}
+		case ZAxis:
+			if vertex.Z < min {
+				min = vertex.Z
+			}
+			if vertex.Z > max {
+				max = vertex.Z
+			}
+		}
+	}
+	return min, max
+}
+
+func (f *Face3D) Width() float64 {
+	min, max := f.MinMax(XAxis)
+	return max - min
+}
+
+func (f *Face3D) Height() float64 {
+	min, max := f.MinMax(YAxis)
+	return max - min
+}
+
+func (f *Face3D) Depth() float64 {
+	min, max := f.MinMax(ZAxis)
+	return max - min
+}
+
 func (f *Face3D) Flatten() []float64 {
 	flattened := make([]float64, len(f.Vertices)*3)
 	for i, vertex := range f.Vertices {
