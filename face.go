@@ -305,7 +305,8 @@ func (f *Face3D) RoundVertices(precision int) {
 }
 
 func (f *Face3D) MinMax(axis Axis) (float64, float64) {
-	var min, max float64
+	min := math.MaxFloat64
+	max := -math.MaxFloat64
 	for _, vertex := range f.Vertices {
 		switch axis {
 		case XAxis:

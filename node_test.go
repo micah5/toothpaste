@@ -124,10 +124,10 @@ func TestRoundVertices(t *testing.T) {
 
 func TestDimensions(t *testing.T) {
 	node := NewNode(NewFace3D(
-		0, 0, 0,
-		1, 0.75, 0,
-		1, 0.75, 0.5,
-		0, 0, 0.5,
+		0.25, 0, 0,
+		1.25, 0.75, 0,
+		1.25, 0.75, 0.5,
+		0.25, 0, 0.5,
 	))
 	width := node.Width()
 	if width != 1 {
