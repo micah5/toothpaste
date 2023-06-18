@@ -51,7 +51,7 @@ func (n *Node) Extrude(height float64, tags ...string) *Node {
 }
 
 func (n *Node) ExtrudeInner(height float64, tags ...string) Nodes {
-	tops := make(Nodes, len(n.Inner))
+	tops := make(Nodes, 0)
 	for _, f := range n.Inner {
 		res := extrude(n, []*Face3D{f}, height, false, tags...)
 		res.GetPrev(len(f.Vertices)).Flip()
@@ -181,12 +181,24 @@ func (n *Node) Drop() {
 }
 
 func (n *Node) InsertAfter(node *Node) {
-	if n.Next != nil {
-		n.Next.Prev = node
-	}
-	node.Next = n.Next
-	node.Prev = n
+	// Save reference to next Node
+	originalNext := n.Next
+
+	// Make the connection from the current node to the inserted node
 	n.Next = node
+	node.Prev = n
+
+	// Find the last node of the inserted nodes
+	currentNode := node
+	for currentNode.Next != nil {
+		currentNode = currentNode.Next
+	}
+
+	// Connect the last inserted node to the original next node
+	currentNode.Next = originalNext
+	if originalNext != nil {
+		originalNext.Prev = currentNode
+	}
 }
 
 func (n *Node) InsertBefore(node *Node) {
@@ -637,6 +649,19 @@ func (ns Nodes) LinkVertices() {
 				}
 			}
 		}
+	}
+}
+
+func (ns Nodes) LinkNodes() {
+	// Check if there is at least one node
+	if len(ns) < 1 {
+		return
+	}
+
+	// Iterate over all nodes, setting the next node for each one
+	for i := 0; i < len(ns)-1; i++ {
+		ns[i].Next = ns[i+1]
+		ns[i+1].Prev = ns[i]
 	}
 }
 

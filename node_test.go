@@ -142,3 +142,33 @@ func TestDimensions(t *testing.T) {
 		t.Errorf("Expected depth to be 0, got %v", depth)
 	}
 }
+
+func TestInsertAfter(t *testing.T) {
+	nodes.LinkVertices()
+	nodes.LinkNodes()
+	beforeNode := NewNode(NewFace3D(
+		5, 0, 0,
+		0, 0, 0,
+		0, 0, 5,
+		5, 0, 5,
+	))
+	afterNode := NewNode(NewFace3D(
+		6, 0, 0,
+		0, 0, 0,
+		0, 0, 6,
+		6, 0, 6,
+	))
+	beforeNode.Next = afterNode
+	afterNode.Prev = beforeNode
+	beforeNode.InsertAfter(nodes[0].First())
+	_nodes := beforeNode.Nodes()
+	if len(_nodes) != 5 {
+		t.Errorf("Expected 5 nodes, got %v", len(_nodes))
+	}
+	if _nodes[0] != beforeNode {
+		t.Errorf("Expected first node to be beforeNode, got %v", _nodes[0])
+	}
+	if _nodes[4] != afterNode {
+		t.Errorf("Expected last node to be afterNode, got %v", _nodes[4])
+	}
+}
