@@ -518,7 +518,7 @@ func (ns Nodes) Scale(x, y, z float64) {
 func (ns Nodes) ScaleFixed(x, y, z float64) {
 	uniques := ns.UniqueVertices()
 	for _, v := range uniques {
-		v.ScaleFixed(x, y, z)
+		v.Scale(x, y, z)
 	}
 }
 
