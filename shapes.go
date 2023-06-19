@@ -21,3 +21,11 @@ func Circle(w, h float64, resolution int) *Face2D {
 	}
 	return NewFace2D(vertices...)
 }
+
+func Triangle(w, d float64) *Face2D {
+	return NewFace2D(
+		0, 0,
+		w/2, d,
+		w, 0,
+	)
+}
