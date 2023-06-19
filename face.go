@@ -350,6 +350,12 @@ func (f *Face3D) Depth() float64 {
 	return max - min
 }
 
+func (f *Face3D) Mirror(axis Axis) {
+	for _, v := range f.Vertices {
+		v.Mirror(axis)
+	}
+}
+
 func (f *Face3D) Flatten() []float64 {
 	flattened := make([]float64, len(f.Vertices)*3)
 	for i, vertex := range f.Vertices {

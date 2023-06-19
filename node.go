@@ -270,6 +270,13 @@ func (n *Node) Mul(m float64) {
 	}
 }
 
+func (n *Node) Mirror(axis Axis) {
+	faces := n.Faces()
+	for _, f := range faces {
+		f.Mirror(axis)
+	}
+}
+
 func (n *Node) MulFixed(m float64) {
 	faces := n.Faces()
 	for _, f := range faces {
@@ -472,6 +479,13 @@ func (ns Nodes) UniqueVertices() []*Vertex3D {
 		vertices = append(vertices, v)
 	}
 	return vertices
+}
+
+func (ns Nodes) Mirror(axis Axis) {
+	uniques := ns.UniqueVertices()
+	for _, v := range uniques {
+		v.Mirror(axis)
+	}
 }
 
 func (ns Nodes) Translate(x, y, z float64) {

@@ -113,6 +113,17 @@ func (v *Vertex3D) Mul(m float64) {
 	v.Z *= m
 }
 
+func (v *Vertex3D) Mirror(axis Axis) {
+	switch axis {
+	case XAxis:
+		v.X = -v.X
+	case YAxis:
+		v.Y = -v.Y
+	case ZAxis:
+		v.Z = -v.Z
+	}
+}
+
 func (v *Vertex3D) Rotate(deg float64, axis Axis) {
 	angle := float64(deg) * (math.Pi / 180)
 	var newX, newY, newZ float64
