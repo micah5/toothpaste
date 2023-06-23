@@ -151,6 +151,36 @@ func (f *Face2D) ToProjection3D(createNewFace bool) *Face3D {
 	return face3D
 }
 
+func (f *Face2D) MinMax() (min, max *Vertex2D) {
+	min = &Vertex2D{math.MaxFloat64, math.MaxFloat64}
+	max = &Vertex2D{-math.MaxFloat64, -math.MaxFloat64}
+	for _, vertex := range f.Vertices {
+		if vertex.X < min.X {
+			min.X = vertex.X
+		}
+		if vertex.Y < min.Y {
+			min.Y = vertex.Y
+		}
+		if vertex.X > max.X {
+			max.X = vertex.X
+		}
+		if vertex.Y > max.Y {
+			max.Y = vertex.Y
+		}
+	}
+	return
+}
+
+func (f *Face2D) Height() float64 {
+	min, max := f.MinMax()
+	return max.Y - min.Y
+}
+
+func (f *Face2D) Width() float64 {
+	min, max := f.MinMax()
+	return max.X - min.X
+}
+
 func (f *Face2D) ToFixed3D(axis ...Axis) *Face3D {
 	face3D := NewFace3D()
 	for _, vertex := range f.Vertices {
