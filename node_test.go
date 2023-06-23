@@ -5,27 +5,6 @@ import (
 	"testing"
 )
 
-var nodes = Nodes{
-	NewNode(NewFace3D(
-		0, 1, 0,
-		0, 1, -2,
-		0, 0, -2,
-		0, 0, 0,
-	)),
-	NewNode(NewFace3D(
-		0, 1, -2,
-		1, 1, -3,
-		1, 0, -3,
-		0, 0, -2,
-	)),
-	NewNode(NewFace3D(
-		1, 1, -3,
-		0, 1, 0,
-		0, 0, 0,
-		1, 0, -3,
-	)),
-}
-
 func isEqualSliceUnordered(x, y []*Vertex3D) bool {
 	if len(x) != len(y) {
 		return false
@@ -46,6 +25,26 @@ func isEqualSliceUnordered(x, y []*Vertex3D) bool {
 }
 
 func TestUniqueVertices(t *testing.T) {
+	var nodes = Nodes{
+		NewNode(NewFace3D(
+			0, 1, 0,
+			0, 1, -2,
+			0, 0, -2,
+			0, 0, 0,
+		)),
+		NewNode(NewFace3D(
+			0, 1, -2,
+			1, 1, -3,
+			1, 0, -3,
+			0, 0, -2,
+		)),
+		NewNode(NewFace3D(
+			1, 1, -3,
+			0, 1, 0,
+			0, 0, 0,
+			1, 0, -3,
+		)),
+	}
 	unique := nodes.UniqueVertices()
 	expected := []*Vertex3D{
 		{0, 1, 0},
@@ -84,6 +83,26 @@ func checkIfUnique(nodes Nodes, uniques []*Vertex3D) bool {
 }
 
 func TestLinkVertices(t *testing.T) {
+	var nodes = Nodes{
+		NewNode(NewFace3D(
+			0, 1, 0,
+			0, 1, -2,
+			0, 0, -2,
+			0, 0, 0,
+		)),
+		NewNode(NewFace3D(
+			0, 1, -2,
+			1, 1, -3,
+			1, 0, -3,
+			0, 0, -2,
+		)),
+		NewNode(NewFace3D(
+			1, 1, -3,
+			0, 1, 0,
+			0, 0, 0,
+			1, 0, -3,
+		)),
+	}
 	uniques := nodes.UniqueVertices()
 	if checkIfUnique(nodes, uniques) != false {
 		t.Errorf("If this triggers then there's a problem with this test case")
@@ -144,6 +163,26 @@ func TestDimensions(t *testing.T) {
 }
 
 func TestInsertAfter(t *testing.T) {
+	var nodes = Nodes{
+		NewNode(NewFace3D(
+			0, 1, 0,
+			0, 1, -2,
+			0, 0, -2,
+			0, 0, 0,
+		)),
+		NewNode(NewFace3D(
+			0, 1, -2,
+			1, 1, -3,
+			1, 0, -3,
+			0, 0, -2,
+		)),
+		NewNode(NewFace3D(
+			1, 1, -3,
+			0, 1, 0,
+			0, 0, 0,
+			1, 0, -3,
+		)),
+	}
 	nodes.LinkVertices()
 	nodes.LinkNodes()
 	beforeNode := NewNode(NewFace3D(
@@ -170,5 +209,69 @@ func TestInsertAfter(t *testing.T) {
 	}
 	if _nodes[4] != afterNode {
 		t.Errorf("Expected last node to be afterNode, got %v", _nodes[4])
+	}
+}
+
+func TestDetach(t *testing.T) {
+	var nodes = Nodes{
+		NewNode(NewFace3D(
+			0, 1, 0,
+			0, 1, -2,
+			0, 0, -2,
+			0, 0, 0,
+		)),
+		NewNode(NewFace3D(
+			0, 1, -2,
+			1, 1, -3,
+			1, 0, -3,
+			0, 0, -2,
+		)),
+		NewNode(NewFace3D(
+			1, 1, -3,
+			0, 1, 0,
+			0, 0, 0,
+			1, 0, -3,
+		)),
+	}
+	nodes.LinkVertices()
+	nodes.LinkNodes()
+	newNode := nodes[0].Detach()
+	nodes = nodes[1].Nodes()
+	_nodes := newNode.Nodes()
+	if len(_nodes) != 1 {
+		t.Errorf("Expected 1 new node, got %v", len(_nodes))
+	}
+	if len(nodes) != 3 {
+		t.Errorf("Expected 3 nodes, got %v", len(nodes))
+	}
+}
+
+func TestDrop(t *testing.T) {
+	var nodes = Nodes{
+		NewNode(NewFace3D(
+			0, 1, 0,
+			0, 1, -2,
+			0, 0, -2,
+			0, 0, 0,
+		)),
+		NewNode(NewFace3D(
+			0, 1, -2,
+			1, 1, -3,
+			1, 0, -3,
+			0, 0, -2,
+		)),
+		NewNode(NewFace3D(
+			1, 1, -3,
+			0, 1, 0,
+			0, 0, 0,
+			1, 0, -3,
+		)),
+	}
+	nodes.LinkVertices()
+	nodes.LinkNodes()
+	nodes[0].Drop()
+	nodes = nodes[1].Nodes()
+	if len(nodes) != 2 {
+		t.Errorf("Expected 2 nodes, got %v", len(nodes))
 	}
 }

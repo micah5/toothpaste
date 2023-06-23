@@ -151,10 +151,13 @@ func (n *Node) RealignConnectedInner() {
 }
 
 func (n *Node) Detach() *Node {
-	n.Next.Prev = n.Prev
-	n.Prev.Next = n.Next
+	last := n.Last()
+	if last == n {
+		last = n.Prev
+	}
 	n.Drop()
 	tmp := n.Copy()
+	last.Next = tmp
 	return tmp
 }
 
@@ -179,6 +182,8 @@ func (n *Node) Drop() {
 	if n.Next != nil {
 		n.Next.Prev = n.Prev
 	}
+	n.Next = nil
+	n.Prev = nil
 }
 
 func (n *Node) InsertAfter(node *Node) {
