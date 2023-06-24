@@ -602,10 +602,13 @@ func (nodes Nodes) CopyAll() Nodes {
 	return res
 }
 
-func (ns Nodes) Detach() {
+func (ns Nodes) Detach() Nodes {
+	var nodes Nodes
 	for _, node := range ns {
-		node.Detach()
+		_node := node.Detach()
+		nodes = append(nodes, _node)
 	}
+	return nodes
 }
 
 func (ns Nodes) ExtrudeDrop(height float64, tags ...string) Nodes {
