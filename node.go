@@ -542,6 +542,18 @@ func (ns Nodes) Flip() {
 	}
 }
 
+func (ns Nodes) Filter(tags ...string) Nodes {
+	var nodes Nodes
+	for _, node := range ns {
+		for _, tag := range tags {
+			if node.Tag == tag {
+				nodes = append(nodes, node)
+			}
+		}
+	}
+	return nodes
+}
+
 func (ns Nodes) Extrude(height float64, tags ...string) Nodes {
 	var nodes Nodes
 	for _, node := range ns {
