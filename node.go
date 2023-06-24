@@ -36,18 +36,22 @@ func (n *Node) ExtrudeLoop(numIter int, fn func(int, *Node) float64, tags ...str
 
 func (n *Node) ExtrudeDrop(height float64, tags ...string) *Node {
 	res := extrude(n, n.Faces(), height, true, tags...)
+	res.GetPrev(n.CountInnerVertices()).Flip()
 	n.Drop()
 	return res
 }
 
 func (n *Node) ExtrudeFlip(height float64, tags ...string) *Node {
 	res := extrude(n, n.Faces(), height, true, tags...)
+	res.GetPrev(n.CountInnerVertices()).Flip()
 	res.Flip()
 	return res
 }
 
 func (n *Node) Extrude(height float64, tags ...string) *Node {
-	return extrude(n, n.Faces(), height, true, tags...)
+	res := extrude(n, n.Faces(), height, true, tags...)
+	res.GetPrev(n.CountInnerVertices()).Flip()
+	return res
 }
 
 func (n *Node) ExtrudeInner(height float64, tags ...string) Nodes {
@@ -87,6 +91,14 @@ func (n *Node) ExtrudePoint(height float64, tags ...string) *Node {
 	}
 
 	return n
+}
+
+func (n *Node) CountInnerVertices() int {
+	count := 0
+	for _, f := range n.Inner {
+		count += len(f.Vertices)
+	}
+	return count
 }
 
 func (n *Node) Width() float64 {
