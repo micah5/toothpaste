@@ -237,12 +237,11 @@ func TestDetach(t *testing.T) {
 	nodes.LinkNodes()
 	newNode := nodes[0].Detach()
 	nodes = nodes[1].Nodes()
-	_nodes := newNode.Nodes()
-	if len(_nodes) != 1 {
-		t.Errorf("Expected 1 new node, got %v", len(_nodes))
-	}
 	if len(nodes) != 3 {
 		t.Errorf("Expected 3 nodes, got %v", len(nodes))
+	}
+	if newNode != nodes[0].Last() {
+		t.Errorf("Expected newNode to be last node, got %v", newNode)
 	}
 }
 
