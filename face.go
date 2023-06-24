@@ -260,6 +260,21 @@ func (f *Face3D) Translate(x, y, z float64) {
 	}
 }
 
+func (f *Face3D) Snap(point *Vertex3D) {
+	// find closest vertex
+	var closest *Vertex3D
+	var closestDist float64
+	for _, vertex := range f.Vertices {
+		dist := vertex.Distance(point)
+		if closest == nil || dist < closestDist {
+			closest = vertex
+			closestDist = dist
+		}
+	}
+	// snap face to point
+	f.Translate(point.X-closest.X, point.Y-closest.Y, point.Z-closest.Z)
+}
+
 func (f *Face3D) MoveTo(x, y, z float64) {
 	cen := f.Centroid()
 	f.Translate(x-cen.X, y-cen.Y, z-cen.Z)

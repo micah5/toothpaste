@@ -277,6 +277,13 @@ func (n *Node) Mul(m float64) {
 	}
 }
 
+func (n *Node) Snap(point *Vertex3D) {
+	faces := n.Faces()
+	for _, f := range faces {
+		f.Snap(point)
+	}
+}
+
 func (n *Node) Mirror(axis Axis) {
 	faces := n.Faces()
 	for _, f := range faces {
