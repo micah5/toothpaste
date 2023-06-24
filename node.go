@@ -158,6 +158,7 @@ func (n *Node) Detach() *Node {
 	n.Drop()
 	tmp := n.Copy()
 	last.Next = tmp
+	tmp.Prev = last
 	return tmp
 }
 
