@@ -699,7 +699,7 @@ func (ns Nodes) Snap(point *Vertex3D) {
 	var closest *Vertex3D
 	var closestDist float64
 	uniques := ns.UniqueVertices()
-	for _, vertex := range f.uniques {
+	for _, vertex := range uniques {
 		dist := vertex.Distance(point)
 		if closest == nil || dist < closestDist {
 			closest = vertex
