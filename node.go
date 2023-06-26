@@ -1,6 +1,7 @@
 package toothpaste
 
 import (
+	"fmt"
 	"github.com/micah5/earcut-3d"
 )
 
@@ -706,11 +707,10 @@ func (ns Nodes) Snap(point *Vertex3D) {
 			closestDist = dist
 		}
 	}
+	fmt.Println("closest", closest, closestDist)
 
 	// snap all to closest vertex
-	for _, v := range uniques {
-		v.Translate(point.X-closest.X, point.Y-closest.Y, point.Z-closest.Z)
-	}
+	ns.Translate(point.X-closest.X, point.Y-closest.Y, point.Z-closest.Z)
 }
 
 func (ns Nodes) Get(tag string) Nodes {
