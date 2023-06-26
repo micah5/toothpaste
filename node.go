@@ -634,41 +634,13 @@ func (nodes Nodes) CopyAll() Nodes {
 }
 
 func (ns Nodes) Copy() Nodes {
-	uniques := ns.UniqueVertices()
-
-	// copy vertices
-	uniques2 := make([]*Vertex3D, 0)
-	for _, v := range uniques {
-		uniques2 = append(uniques2, v.Copy())
-	}
-	res := Nodes{}
+	ns2 := make(Nodes, 0)
 	for _, node := range ns {
-		// lookup new vertices
-		verts := make([]*Vertex3D, len(node.Outer.Vertices))
-		for i, v := range node.Outer.Vertices {
-			for j, v2 := range uniques {
-				if v == v2 {
-					verts[i] = uniques2[j]
-				}
-			}
-		}
-		holes := make([]*Face3D, len(node.Inner))
-		for i, f := range node.Inner {
-			verts := make([]*Vertex3D, len(f.Vertices))
-			for i, v := range f.Vertices {
-				for j, v2 := range uniques {
-					if v == v2 {
-						verts[i] = uniques2[j]
-					}
-				}
-			}
-			holes[i] = &Face3D{Vertices: verts}
-		}
-		_node := NewTaggedNode(node.Tag, &Face3D{Vertices: verts}, holes...)
-		res = append(res, _node)
+		ns2 = append(ns2, node.Copy())
 	}
-
-	return res
+	ns2.LinkVertices()
+	ns2.LinkNodes()
+	return ns2
 }
 
 func (ns Nodes) Detach() Nodes {
