@@ -245,6 +245,64 @@ func TestDetach(t *testing.T) {
 	}
 }
 
+func TestCopy(t *testing.T) {
+	var nodes1 = Nodes{
+		NewNode(NewFace3D(
+			0, 1, 0,
+			0, 1, -2,
+			0, 0, -2,
+			0, 0, 0,
+		)),
+		NewNode(NewFace3D(
+			0, 1, -2,
+			1, 1, -3,
+			1, 0, -3,
+			0, 0, -2,
+		)),
+		NewNode(NewFace3D(
+			1, 1, -3,
+			0, 1, 0,
+			0, 0, 0,
+			1, 0, -3,
+		)),
+	}
+	nodes1.LinkVertices()
+	nodes1.LinkNodes()
+
+	nodes2 := nodes1.Copy()
+	if len(nodes2) != len(nodes1) {
+		t.Errorf("Expected 3 nodes, got %v", len(nodes2))
+	}
+	// check every vertex has the same x, y, z values, but is a different pointer
+	// remember, they may be in a different position in the slice
+	uniques1 := nodes1.UniqueVertices()
+	uniques2 := nodes2.UniqueVertices()
+	if len(uniques1) != len(uniques2) {
+		t.Errorf("Expected %v unique vertices, got %v", len(uniques1), len(uniques2))
+	}
+	for _, unique1 := range uniques1 {
+		// find closest vertex in nodes2
+		var closest *Vertex3D
+		var closestDistance float64
+		for _, _unique2 := range uniques2 {
+			distance := unique1.Distance(_unique2)
+			if closest == nil || distance < closestDistance {
+				closest = _unique2
+				closestDistance = distance
+			}
+		}
+		if closest == nil {
+			t.Errorf("Expected to find closest vertex, got nil")
+		}
+		if closest.X != unique1.X || closest.Y != unique1.Y || closest.Z != unique1.Z {
+			t.Errorf("Expected vertices to be equal, got %v and %v", unique1, closest)
+		}
+		if closest == unique1 {
+			t.Errorf("Expected vertices to be different pointers, got %p and %p", unique1, closest)
+		}
+	}
+}
+
 func TestDrop(t *testing.T) {
 	var nodes = Nodes{
 		NewNode(NewFace3D(
