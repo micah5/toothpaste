@@ -458,6 +458,15 @@ func (n *Node) TagAll(tag string) {
 	}
 }
 
+func (n *Node) TagAllUntagged(tag string) {
+	nodes := n.Nodes()
+	for _, node := range nodes {
+		if node.Tag == "" {
+			node.Tag = tag
+		}
+	}
+}
+
 func (n *Node) Reverse() {
 	n.Flip()
 }
@@ -571,6 +580,12 @@ func (ns Nodes) Filter(tags ...string) Nodes {
 		}
 	}
 	return nodes
+}
+
+func (ns Nodes) Tag(tag string) {
+	for _, node := range ns {
+		node.Tag = tag
+	}
 }
 
 func (ns Nodes) Extrude(height float64, tags ...string) Nodes {
