@@ -437,7 +437,7 @@ func (f *Face3D) Flip() {
 	for i := 0; i < len(half2)/2; i++ {
 		half2[i], half2[len(half2)-i-1] = half2[len(half2)-i-1], half2[i]
 	}
-	f.Vertices = append(half2, half1...)
+	f.Vertices = append(half1, half2...)
 }
 
 func (f *Face3D) ShareVertices(other *Face3D) bool {
