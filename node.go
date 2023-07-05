@@ -588,6 +588,14 @@ func (ns Nodes) Tag(tag string) {
 	}
 }
 
+func (ns Nodes) RenameTag(prev, next string) {
+	for _, node := range ns {
+		if node.Tag == prev {
+			node.Tag = next
+		}
+	}
+}
+
 func (ns Nodes) Extrude(height float64, tags ...string) Nodes {
 	var nodes Nodes
 	for _, node := range ns {

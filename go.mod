@@ -3,7 +3,7 @@ module github.com/micah5/toothpaste
 go 1.20
 
 require (
-	github.com/micah5/earcut-3d v1.3.1
+	github.com/micah5/earcut-3d v1.3.2
 	github.com/micah5/exhaustive-fitter v1.0.0
 )
 
