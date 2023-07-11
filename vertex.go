@@ -156,6 +156,35 @@ func (v *Vertex3D) String() string {
 	return fmt.Sprintf("{%f, %f, %f}", v.X, v.Y, v.Z)
 }
 
+func (v *Vertex3D) RotationTo(v2 *Vertex3D) (float64, Axis) {
+	// Compute the dot product
+	dot := v.X*v2.X + v.Y*v2.Y + v.Z*v2.Z
+
+	// Compute the lengths of the vectors
+	lenV := math.Sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z)
+	lenV2 := math.Sqrt(v2.X*v2.X + v2.Y*v2.Y + v2.Z*v2.Z)
+
+	// Compute the angle between the vectors
+	angle := math.Acos(dot/(lenV*lenV2)) * (180 / math.Pi)
+
+	// Compute the cross product
+	crossX := v.Y*v2.Z - v.Z*v2.Y
+	crossY := v.Z*v2.X - v.X*v2.Z
+	crossZ := v.X*v2.Y - v.Y*v2.X
+
+	// Choose the axis based on the largest component of the cross product
+	var axis Axis
+	if math.Abs(crossX) > math.Abs(crossY) && math.Abs(crossX) > math.Abs(crossZ) {
+		axis = XAxis
+	} else if math.Abs(crossY) > math.Abs(crossZ) {
+		axis = YAxis
+	} else {
+		axis = ZAxis
+	}
+
+	return angle, axis
+}
+
 func (v *Vertex3D) Equals(v2 *Vertex3D) bool {
 	return v.X == v2.X && v.Y == v2.Y && v.Z == v2.Z
 }

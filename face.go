@@ -260,6 +260,40 @@ func (f *Face3D) Translate(x, y, z float64) {
 	}
 }
 
+func (f *Face3D) Align(f2 *Face3D) {
+	// Move f to the same position and rotation as f2
+	// First, move f to the same position as f2
+	cen1 := f.Centroid()
+	cen2 := f2.Centroid()
+
+	// Translate f so its centroid is at the origin
+	for _, v := range f.Vertices {
+		v.Translate(-cen1.X, -cen1.Y, -cen1.Z)
+	}
+
+	// Compute the normals
+	normal1 := f.Normal()
+	normal2 := f2.Normal()
+
+	// Calculate the rotation between the two normals
+	angle, axis := normal1.RotationTo(normal2)
+
+	// Apply the rotation to each vertex
+	for _, v := range f.Vertices {
+		switch axis {
+		case XAxis:
+			v.Rotate(angle, XAxis)
+		case YAxis:
+			v.Rotate(angle, YAxis)
+		case ZAxis:
+			v.Rotate(angle, ZAxis)
+		}
+
+		// Translate the vertices to the position of f2
+		v.Translate(cen2.X, cen2.Y, cen2.Z)
+	}
+}
+
 func (f *Face3D) Snap(point *Vertex3D) {
 	// find closest vertex
 	var closest *Vertex3D

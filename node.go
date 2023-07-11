@@ -162,6 +162,14 @@ func (n *Node) RealignConnectedInner() {
 	}
 }
 
+func (n *Node) Align(n2 *Node) {
+	faces := n.Faces()
+	faces2 := n2.Faces()
+	for i, f := range faces {
+		f.Align(faces2[i])
+	}
+}
+
 func (n *Node) Detach() *Node {
 	last := n.Last()
 	if last == n {
@@ -310,16 +318,16 @@ func (n *Node) MulFixed(m float64) {
 	}
 }
 
-func (n *Node) Align(n2 *Node) {
-	cen := n.Outer.Centroid()
-	cen2 := n2.Outer.Centroid()
-	nodes := n2.Nodes()
-	uniques := nodes.UniqueVertices()
-	for _, v := range uniques {
-		x, y, z := v.X-cen2.X, v.Y-cen2.Y, v.Z-cen2.Z
-		v.MoveTo(cen.X+x, cen.Y+y, cen.Z+z)
-	}
-}
+//func (n *Node) Align(n2 *Node) {
+//	cen := n.Outer.Centroid()
+//	cen2 := n2.Outer.Centroid()
+//	nodes := n2.Nodes()
+//	uniques := nodes.UniqueVertices()
+//	for _, v := range uniques {
+//		x, y, z := v.X-cen2.X, v.Y-cen2.Y, v.Z-cen2.Z
+//		v.MoveTo(cen.X+x, cen.Y+y, cen.Z+z)
+//	}
+//}
 
 func (n *Node) Translate2D(x, y float64) {
 	faces := n.Faces()
