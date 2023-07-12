@@ -26,6 +26,11 @@ func main() {
 	// Center the cube at the origin
 	bottom.Center()
 
+	nodes := bottom.Nodes()
+	nodes2 := nodes.Copy()
+	nodes2.Translate(0, 0, 4)
+	bottom.Last().InsertAfter(nodes2[0].First())
+
 	// Generate the .obj file
 	bottom.Generate("cube.obj")
 }

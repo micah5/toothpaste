@@ -3,6 +3,8 @@ package toothpaste
 import (
 	"github.com/micah5/earcut-3d"
 	"github.com/micah5/exhaustive-fitter"
+	"gonum.org/v1/gonum/mat"
+	"gonum.org/v1/gonum/spatial/r3"
 	"math"
 )
 
@@ -261,36 +263,45 @@ func (f *Face3D) Translate(x, y, z float64) {
 }
 
 func (f *Face3D) Align(f2 *Face3D) {
-	// Move f to the same position and rotation as f2
-	// First, move f to the same position as f2
-	cen1 := f.Centroid()
+	cen := f.Centroid()
 	cen2 := f2.Centroid()
+	f.Translate(cen.X-cen2.X, cen.Y-cen2.Y, cen.Z-cen2.Z)
 
-	// Translate f so its centroid is at the origin
-	for _, v := range f.Vertices {
-		v.Translate(-cen1.X, -cen1.Y, -cen1.Z)
-	}
+	basis1 := earcut3d.FindBasis(f2.Flatten())
+	basis2 := earcut3d.FindBasis(f.Flatten())
 
-	// Compute the normals
-	normal1 := f.Normal()
-	normal2 := f2.Normal()
+	// Convert basis1 and basis2 to *mat.Dense
+	matBasis1 := mat.NewDense(3, 2, basis1)
+	matBasis2 := mat.NewDense(3, 2, basis2)
 
-	// Calculate the rotation between the two normals
-	angle, axis := normal1.RotationTo(normal2)
+	// Calculate normal vector of the first basis
+	v1_1 := r3.Vec{X: matBasis1.At(0, 0), Y: matBasis1.At(1, 0), Z: matBasis1.At(2, 0)}
+	v2_1 := r3.Vec{X: matBasis1.At(0, 1), Y: matBasis1.At(1, 1), Z: matBasis1.At(2, 1)}
+	normal_1 := r3.Cross(v1_1, v2_1)
+	normal_1 = r3.Scale(1/r3.Norm(normal_1), normal_1)
 
-	// Apply the rotation to each vertex
-	for _, v := range f.Vertices {
-		switch axis {
-		case XAxis:
-			v.Rotate(angle, XAxis)
-		case YAxis:
-			v.Rotate(angle, YAxis)
-		case ZAxis:
-			v.Rotate(angle, ZAxis)
-		}
+	// Calculate normal vector of the second basis
+	v1_2 := r3.Vec{X: matBasis2.At(0, 0), Y: matBasis2.At(1, 0), Z: matBasis2.At(2, 0)}
+	v2_2 := r3.Vec{X: matBasis2.At(0, 1), Y: matBasis2.At(1, 1), Z: matBasis2.At(2, 1)}
+	normal_2 := r3.Cross(v1_2, v2_2)
+	normal_2 = r3.Scale(1/r3.Norm(normal_2), normal_2)
 
-		// Translate the vertices to the position of f2
-		v.Translate(cen2.X, cen2.Y, cen2.Z)
+	// Add normal vector to the original basis matrix
+	matBasis1_extended := mat.NewDense(3, 3, append(basis1, normal_1.X, normal_1.Y, normal_1.Z))
+	matBasis2_extended := mat.NewDense(3, 3, append(basis2, normal_2.X, normal_2.Y, normal_2.Z))
+
+	// Compute rotation matrix R = basis2 * basis1.T
+	matBasis1_extended.T()
+	R := new(mat.Dense)
+	R.Mul(matBasis2_extended, matBasis1_extended)
+
+	// Apply rotation to f
+	f.RotateMatrix(R)
+}
+
+func (f *Face3D) RotateMatrix(R *mat.Dense) {
+	for _, vertex := range f.Vertices {
+		vertex.RotateMatrix(R)
 	}
 }
 

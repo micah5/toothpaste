@@ -2,6 +2,7 @@ package toothpaste
 
 import (
 	"fmt"
+	"gonum.org/v1/gonum/mat"
 	"math"
 )
 
@@ -101,6 +102,12 @@ func (v *Vertex3D) Translate(x, y, z float64) {
 	v.Z += z
 }
 
+func (v *Vertex3D) Subtract(v2 *Vertex3D) {
+	v.X -= v2.X
+	v.Y -= v2.Y
+	v.Z -= v2.Z
+}
+
 func (v *Vertex3D) Scale(x, y, z float64) {
 	v.X *= x
 	v.Y *= y
@@ -122,6 +129,32 @@ func (v *Vertex3D) Mirror(axis Axis) {
 	case ZAxis:
 		v.Z = -v.Z
 	}
+}
+
+func (v *Vertex3D) Normalize() Vertex3D {
+	mag := math.Sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z)
+	return Vertex3D{
+		X: v.X / mag,
+		Y: v.Y / mag,
+		Z: v.Z / mag,
+	}
+}
+
+func (v *Vertex3D) RotateAroundAxis(angle float64, axis *Vertex3D) {
+	angleRad := angle * (math.Pi / 180)
+
+	k := axis.Normalize()
+
+	cosTheta := math.Cos(angleRad)
+	sinTheta := math.Sin(angleRad)
+
+	newX := cosTheta*v.X + sinTheta*(k.Y*v.Z-k.Z*v.Y) + (1-cosTheta)*(k.X*(k.X*v.X+k.Y*v.Y+k.Z*v.Z))
+	newY := cosTheta*v.Y + sinTheta*(k.Z*v.X-k.X*v.Z) + (1-cosTheta)*(k.Y*(k.X*v.X+k.Y*v.Y+k.Z*v.Z))
+	newZ := cosTheta*v.Z + sinTheta*(k.X*v.Y-k.Y*v.X) + (1-cosTheta)*(k.Z*(k.X*v.X+k.Y*v.Y+k.Z*v.Z))
+
+	v.X = newX
+	v.Y = newY
+	v.Z = newZ
 }
 
 func (v *Vertex3D) Rotate(deg float64, axis Axis) {
@@ -146,10 +179,32 @@ func (v *Vertex3D) Rotate(deg float64, axis Axis) {
 	}
 }
 
+func (v *Vertex3D) RotateMatrix(R *mat.Dense) {
+	// Convert the vertex to a gonum VecDense
+	vec := mat.NewVecDense(3, []float64{v.X, v.Y, v.Z})
+
+	// Multiply the rotation matrix by the vertex
+	res := new(mat.VecDense)
+	res.MulVec(R, vec)
+
+	// Update the vertex's coordinates
+	v.X = res.AtVec(0)
+	v.Y = res.AtVec(1)
+	v.Z = res.AtVec(2)
+}
+
 func (v *Vertex3D) MoveTo(x, y, z float64) {
 	v.X = x
 	v.Y = y
 	v.Z = z
+}
+
+func (v *Vertex3D) Angle(v2 *Vertex3D) float64 {
+	return math.Atan2(v2.Y-v.Y, v2.X-v.X) * (180 / math.Pi)
+}
+
+func (v *Vertex3D) Cross(v2 *Vertex3D) float64 {
+	return v.X*v2.Y - v.Y*v2.X
 }
 
 func (v *Vertex3D) String() string {
