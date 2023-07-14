@@ -1,7 +1,9 @@
 package toothpaste
 
 import (
+	"fmt"
 	"github.com/micah5/earcut-3d"
+	"os"
 )
 
 type Node struct {
@@ -318,17 +320,6 @@ func (n *Node) MulFixed(m float64) {
 	}
 }
 
-//func (n *Node) Align(n2 *Node) {
-//	cen := n.Outer.Centroid()
-//	cen2 := n2.Outer.Centroid()
-//	nodes := n2.Nodes()
-//	uniques := nodes.UniqueVertices()
-//	for _, v := range uniques {
-//		x, y, z := v.X-cen2.X, v.Y-cen2.Y, v.Z-cen2.Z
-//		v.MoveTo(cen.X+x, cen.Y+y, cen.Z+z)
-//	}
-//}
-
 func (n *Node) Translate2D(x, y float64) {
 	faces := n.Faces()
 	for _, f := range faces {
@@ -477,6 +468,91 @@ func (n *Node) TagAllUntagged(tag string) {
 
 func (n *Node) Reverse() {
 	n.Flip()
+}
+
+func (node *Node) GenerateColor(name string, colors map[string][3]float64) {
+	nodes := node.Nodes()
+	var faces [][]float64
+	var holes [][][]float64
+	for _, node := range nodes {
+		faces = append(faces, node.Outer.Flatten())
+		_holes := make([][]float64, 0)
+		for _, inner := range node.Inner {
+			_holes = append(_holes, inner.Flatten())
+		}
+		holes = append(holes, _holes)
+	}
+	faces2 := earcut3d.EarcutFaces(faces, holes...)
+
+	// Create obj file
+	f, err := os.Create(name)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	// Create a map to store unique vertices and their indices
+	vertexIndices := make(map[[3]float64]int)
+	currentIndex := 1
+
+	// Write header
+	mtlFilename := name[:len(name)-4]
+	f.WriteString("mtllib " + mtlFilename + ".mtl\n")
+	colors["default"] = [3]float64{1.0, 1.0, 1.0}
+
+	// Write triangles
+	for _, face := range faces2 {
+		for _, triangleArray := range face {
+			for i := 0; i < len(triangleArray); i += 3 {
+				// If the vertex hasn't been seen before, write it and store its index
+				key := [3]float64{triangleArray[i], triangleArray[i+1], triangleArray[i+2]}
+				if _, seen := vertexIndices[key]; !seen {
+					f.WriteString(fmt.Sprintf("v %f %f %f\n", triangleArray[i], triangleArray[i+1], triangleArray[i+2]))
+					vertexIndices[key] = currentIndex
+					currentIndex++
+				}
+			}
+		}
+	}
+
+	// Organise triangles by tag
+	trianglesByTag := make(map[string][][]float64)
+	for i, face := range faces2 {
+		tag := nodes[i].Tag
+		if tag == "" {
+			tag = "default"
+		}
+		for _, triangleArray := range face {
+			trianglesByTag[tag] = append(trianglesByTag[tag], triangleArray)
+		}
+	}
+
+	// Write faces
+	for tag, triangles := range trianglesByTag {
+		f.WriteString(fmt.Sprintf("usemtl %s\n", tag))
+		for _, triangleArray := range triangles {
+			f.WriteString("f")
+			for i := 0; i < len(triangleArray); i += 3 {
+				key := [3]float64{triangleArray[i], triangleArray[i+1], triangleArray[i+2]}
+				f.WriteString(fmt.Sprintf(" %d", vertexIndices[key]))
+			}
+			f.WriteString("\n")
+		}
+	}
+
+	// Create mtl file
+	// remove .obj from name
+	f, err = os.Create(mtlFilename + ".mtl")
+	if err != nil {
+		panic(err)
+	}
+
+	// Write materials
+	for tag, _ := range trianglesByTag {
+		color := colors[tag]
+		f.WriteString(fmt.Sprintf("newmtl %s\n", tag))
+		f.WriteString(fmt.Sprintf("Kd %f %f %f\n", color[0], color[1], color[2]))
+	}
 }
 
 func (n *Node) Generate(filename string) {
