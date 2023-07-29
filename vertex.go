@@ -39,8 +39,10 @@ func (v *Vertex2D) Mul(m float64) {
 
 func (v *Vertex2D) Rotate(deg float64) {
 	angle := float64(deg) * (math.Pi / 180)
-	v.X = v.X*math.Cos(angle) - v.Y*math.Sin(angle)
-	v.Y = v.X*math.Sin(angle) + v.Y*math.Cos(angle)
+	newX := v.X*math.Cos(angle) - v.Y*math.Sin(angle)
+	newY := v.X*math.Sin(angle) + v.Y*math.Cos(angle)
+	v.X = newX
+	v.Y = newY
 }
 
 func (v *Vertex2D) MoveTo(x, y float64) {

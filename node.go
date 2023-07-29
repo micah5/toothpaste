@@ -3,6 +3,7 @@ package toothpaste
 import (
 	"fmt"
 	"github.com/micah5/earcut-3d"
+	"math"
 	"os"
 )
 
@@ -20,6 +21,21 @@ func NewNode(outer *Face3D, inner ...*Face3D) *Node {
 
 func NewTaggedNode(tag string, outer *Face3D, inner ...*Face3D) *Node {
 	return &Node{tag, outer, inner, nil, nil}
+}
+
+func NewSliceNode(outers ...*Face3D) *Node {
+	// create multiple nodes, each with a single outer face
+	// and then link them together
+	var prev *Node
+	for _, outer := range outers {
+		node := NewNode(outer)
+		if prev != nil {
+			prev.Next = node
+			node.Prev = prev
+		}
+		prev = node
+	}
+	return prev
 }
 
 func (n *Node) ExtrudeLoop(numIter int, fn func(int, *Node) float64, tags ...string) *Node {
@@ -553,6 +569,61 @@ func (node *Node) GenerateColor(name string, colors map[string][3]float64) {
 		f.WriteString(fmt.Sprintf("newmtl %s\n", tag))
 		f.WriteString(fmt.Sprintf("Kd %f %f %f\n", color[0], color[1], color[2]))
 	}
+}
+
+func (n *Node) getBounds() (minX, minY, minZ, maxX, maxY, maxZ float64) {
+	nodes := n.Nodes()
+	minX, minY, minZ = math.Inf(1), math.Inf(1), math.Inf(1)
+	maxX, maxY, maxZ = math.Inf(-1), math.Inf(-1), math.Inf(-1)
+
+	for _, node := range nodes {
+		for _, vertex := range node.Outer.Vertices {
+			minX = math.Min(minX, vertex.X)
+			minY = math.Min(minY, vertex.Y)
+			minZ = math.Min(minZ, vertex.Z)
+			maxX = math.Max(maxX, vertex.X)
+			maxY = math.Max(maxY, vertex.Y)
+			maxZ = math.Max(maxZ, vertex.Z)
+		}
+	}
+	return minX, minY, minZ, maxX, maxY, maxZ
+}
+
+func (n *Node) FitRectangularPrism(prism [6]*Face3D) {
+	// Get bounds of the rectangular prism
+	var minX, minY, minZ, maxX, maxY, maxZ float64
+	for _, face := range prism {
+		for _, v := range face.Vertices {
+			minX = math.Min(minX, v.X)
+			minY = math.Min(minY, v.Y)
+			minZ = math.Min(minZ, v.Z)
+			maxX = math.Max(maxX, v.X)
+			maxY = math.Max(maxY, v.Y)
+			maxZ = math.Max(maxZ, v.Z)
+		}
+	}
+
+	// Get bounds of the node
+	nodeMinX, nodeMinY, nodeMinZ, nodeMaxX, nodeMaxY, nodeMaxZ := n.getBounds()
+
+	// Calculate node and prism dimensions
+	nodeDimX := nodeMaxX - nodeMinX
+	nodeDimY := nodeMaxY - nodeMinY
+	nodeDimZ := nodeMaxZ - nodeMinZ
+	prismDimX := maxX - minX
+	prismDimY := maxY - minY
+	prismDimZ := maxZ - minZ
+
+	// Calculate scale factors
+	scaleX := prismDimX / nodeDimX
+	scaleY := prismDimY / nodeDimY
+	scaleZ := prismDimZ / nodeDimZ
+
+	// Translate and scale all connected nodes
+	nodes := n.Nodes()
+	nodes.Translate(-nodeMinX, -nodeMinY, -nodeMinZ)
+	nodes.Scale(scaleX, scaleY, scaleZ)
+	nodes.Translate((minX+maxX)/2, (minY+maxY)/2, (minZ+maxZ)/2)
 }
 
 func (n *Node) Generate(filename string) {
