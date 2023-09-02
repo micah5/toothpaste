@@ -18,6 +18,10 @@ type Vertex2D struct {
 	X, Y float64
 }
 
+func NewVertex2D(x, y float64) *Vertex2D {
+	return &Vertex2D{x, y}
+}
+
 func (v *Vertex2D) Copy() *Vertex2D {
 	return &Vertex2D{v.X, v.Y}
 }
@@ -67,11 +71,11 @@ func (v *Vertex2D) To3D(_axis ...Axis) *Vertex3D {
 	}
 	switch axis {
 	case XAxis:
-		return &Vertex3D{v.X, 0, v.Y}
+		return NewVertex3D(v.X, 0, v.Y)
 	case YAxis:
-		return &Vertex3D{0, v.Y, v.X}
+		return NewVertex3D(0, v.Y, v.X)
 	case ZAxis:
-		return &Vertex3D{v.X, v.Y, 0}
+		return NewVertex3D(v.X, v.Y, 0)
 	default:
 		return nil
 	}
@@ -80,10 +84,20 @@ func (v *Vertex2D) To3D(_axis ...Axis) *Vertex3D {
 // 3D
 type Vertex3D struct {
 	X, Y, Z float64
+	U, V    float64 // optional texture coordinates
+}
+
+func NewVertex3D(x, y, z float64) *Vertex3D {
+	return &Vertex3D{x, y, z, 0, 0}
 }
 
 func (v *Vertex3D) Copy() *Vertex3D {
-	return &Vertex3D{v.X, v.Y, v.Z}
+	return &Vertex3D{v.X, v.Y, v.Z, v.U, v.V}
+}
+
+func (v *Vertex3D) UV(u, _v float64) {
+	v.U = u
+	v.V = _v
 }
 
 func (v *Vertex3D) Round(precision int) {

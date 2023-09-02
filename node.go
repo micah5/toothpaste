@@ -5,22 +5,24 @@ import (
 	"github.com/micah5/earcut-3d"
 	"math"
 	"os"
+	"strings"
 )
 
 type Node struct {
-	Tag   string
-	Outer *Face3D
-	Inner []*Face3D
-	Prev  *Node
-	Next  *Node
+	Tag          string
+	Outer        *Face3D
+	Inner        []*Face3D
+	Prev         *Node
+	Next         *Node
+	ImageTexture bool
 }
 
 func NewNode(outer *Face3D, inner ...*Face3D) *Node {
-	return &Node{"", outer, inner, nil, nil}
+	return &Node{"", outer, inner, nil, nil, false}
 }
 
 func NewTaggedNode(tag string, outer *Face3D, inner ...*Face3D) *Node {
-	return &Node{tag, outer, inner, nil, nil}
+	return &Node{tag, outer, inner, nil, nil, false}
 }
 
 func NewSliceNode(outers ...*Face3D) *Node {
@@ -205,7 +207,9 @@ func (n *Node) Copy() *Node {
 	for i, f := range n.Inner {
 		holes[i] = f.Copy()
 	}
-	return NewTaggedNode(n.Tag, n.Outer.Copy(), holes...)
+	copyNode := NewTaggedNode(n.Tag, n.Outer.Copy(), holes...)
+	copyNode.ImageTexture = n.ImageTexture
+	return copyNode
 }
 
 func (n *Node) CopyAll() Nodes {
@@ -436,7 +440,13 @@ func (n *Node) Centroid() *Vertex3D {
 		sumY += node.Outer.Centroid().Y
 		sumZ += node.Outer.Centroid().Z
 	}
-	return &Vertex3D{sumX / float64(len(nodes)), sumY / float64(len(nodes)), sumZ / float64(len(nodes))}
+	return NewVertex3D(sumX/float64(len(nodes)), sumY/float64(len(nodes)), sumZ/float64(len(nodes)))
+}
+
+func (n *Node) AddTexture(texturePath string, uvCoords ...*Vertex2D) {
+	n.Outer.AddTexture(uvCoords...)
+	n.Tag = texturePath
+	n.ImageTexture = true
 }
 
 func (n *Node) Center() {
@@ -486,7 +496,27 @@ func (n *Node) Reverse() {
 	n.Flip()
 }
 
-func (node *Node) GenerateColor(name string, colors map[string][3]float64) {
+func (n *Node) Generate(filename string) {
+	nodes := n.Nodes()
+	var faces [][]float64
+	var holes [][][]float64
+	for _, node := range nodes {
+		faces = append(faces, node.Outer.Flatten())
+		_holes := make([][]float64, 0)
+		for _, inner := range node.Inner {
+			_holes = append(_holes, inner.Flatten())
+		}
+		holes = append(holes, _holes)
+	}
+	triangles := earcut3d.Earcut(faces, holes...)
+	earcut3d.CreateObjFile(filename, triangles)
+}
+
+func (node *Node) GenerateColor(name string, _colors ...map[string][3]float64) {
+	colors := map[string][3]float64{}
+	if len(_colors) > 0 {
+		colors = _colors[0]
+	}
 	nodes := node.Nodes()
 	var faces [][]float64
 	var holes [][][]float64
@@ -499,6 +529,18 @@ func (node *Node) GenerateColor(name string, colors map[string][3]float64) {
 		holes = append(holes, _holes)
 	}
 	faces2 := earcut3d.EarcutFaces(faces, holes...)
+
+	// find all the unique uv coordinates
+	uniqueUVs := make(map[[2]float64]int)
+	for _, n := range nodes {
+		for _, vertex := range n.Outer.Vertices {
+			uniqueUVs[[2]float64{vertex.U, vertex.V}] = 1
+		}
+	}
+	uvIndices := make(map[[2]float64]int)
+	for uvCoord := range uniqueUVs {
+		uvIndices[uvCoord] = len(uvIndices) + 1
+	}
 
 	// Create obj file
 	f, err := os.Create(name)
@@ -532,15 +574,42 @@ func (node *Node) GenerateColor(name string, colors map[string][3]float64) {
 	}
 
 	// Organise triangles by tag
+	type TypedTag struct {
+		ImageTexture bool
+		Path         string
+		Index        int
+	}
 	trianglesByTag := make(map[string][][]float64)
+	metaTag := make(map[string]TypedTag)
 	for i, face := range faces2 {
 		tag := nodes[i].Tag
 		if tag == "" {
 			tag = "default"
 		}
+		imageTexture := nodes[i].ImageTexture
+		if imageTexture {
+			path := nodes[i].Tag
+			// split on / and take the last element, also remove the .png or .jpg or whatever
+			tag = strings.Split(tag, "/")[len(strings.Split(tag, "/"))-1]
+			tag = strings.Split(tag, ".")[0]
+			metaTag[tag] = TypedTag{
+				ImageTexture: imageTexture,
+				Path:         path,
+				Index:        i,
+			}
+		}
 		for _, triangleArray := range face {
 			trianglesByTag[tag] = append(trianglesByTag[tag], triangleArray)
 		}
+	}
+
+	// Write texture coordinates
+	sortedUvIndices := make([][2]float64, len(uvIndices))
+	for uvCoord, index := range uvIndices {
+		sortedUvIndices[index-1] = uvCoord
+	}
+	for _, uvCoord := range sortedUvIndices {
+		f.WriteString(fmt.Sprintf("vt %f %f\n", uvCoord[0], uvCoord[1]))
 	}
 
 	// Write faces
@@ -550,7 +619,23 @@ func (node *Node) GenerateColor(name string, colors map[string][3]float64) {
 			f.WriteString("f")
 			for i := 0; i < len(triangleArray); i += 3 {
 				key := [3]float64{triangleArray[i], triangleArray[i+1], triangleArray[i+2]}
-				f.WriteString(fmt.Sprintf(" %d", vertexIndices[key]))
+
+				// check if the vertex has a uv coordinate
+				uvIndex := -1
+				meta := metaTag[tag]
+				if meta.ImageTexture {
+					for _, n := range nodes[meta.Index].Outer.Vertices {
+						if n.X == key[0] && n.Y == key[1] && n.Z == key[2] {
+							uvIndex = uvIndices[[2]float64{n.U, n.V}]
+							break
+						}
+					}
+				}
+				if uvIndex != -1 {
+					f.WriteString(fmt.Sprintf(" %d/%d", vertexIndices[key], uvIndex))
+				} else {
+					f.WriteString(fmt.Sprintf(" %d", vertexIndices[key]))
+				}
 			}
 			f.WriteString("\n")
 		}
@@ -565,9 +650,14 @@ func (node *Node) GenerateColor(name string, colors map[string][3]float64) {
 
 	// Write materials
 	for tag, _ := range trianglesByTag {
-		color := colors[tag]
 		f.WriteString(fmt.Sprintf("newmtl %s\n", tag))
-		f.WriteString(fmt.Sprintf("Kd %f %f %f\n", color[0], color[1], color[2]))
+		meta := metaTag[tag]
+		if meta.ImageTexture {
+			f.WriteString(fmt.Sprintf("map_Kd %s\n", meta.Path))
+		} else {
+			color := colors[tag]
+			f.WriteString(fmt.Sprintf("Kd %f %f %f\n", color[0], color[1], color[2]))
+		}
 	}
 }
 
@@ -626,22 +716,6 @@ func (n *Node) FitRectangularPrism(prism [6]*Face3D) {
 	nodes.Translate((minX+maxX)/2, (minY+maxY)/2, (minZ+maxZ)/2)
 }
 
-func (n *Node) Generate(filename string) {
-	nodes := n.Nodes()
-	var faces [][]float64
-	var holes [][][]float64
-	for _, node := range nodes {
-		faces = append(faces, node.Outer.Flatten())
-		_holes := make([][]float64, 0)
-		for _, inner := range node.Inner {
-			_holes = append(_holes, inner.Flatten())
-		}
-		holes = append(holes, _holes)
-	}
-	triangles := earcut3d.Earcut(faces, holes...)
-	earcut3d.CreateObjFile(filename, triangles)
-}
-
 type Nodes []*Node
 
 func (ns Nodes) Centroid() *Vertex3D {
@@ -651,7 +725,7 @@ func (ns Nodes) Centroid() *Vertex3D {
 		sumY += node.Outer.Centroid().Y
 		sumZ += node.Outer.Centroid().Z
 	}
-	return &Vertex3D{sumX / float64(len(ns)), sumY / float64(len(ns)), sumZ / float64(len(ns))}
+	return NewVertex3D(sumX/float64(len(ns)), sumY/float64(len(ns)), sumZ/float64(len(ns)))
 }
 
 func (ns Nodes) UniqueVertices() []*Vertex3D {

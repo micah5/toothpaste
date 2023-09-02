@@ -215,7 +215,7 @@ type Face3D struct {
 func NewFace3D(vertices ...float64) *Face3D {
 	var v []*Vertex3D
 	for i := 0; i < len(vertices); i += 3 {
-		v = append(v, &Vertex3D{vertices[i], vertices[i+1], vertices[i+2]})
+		v = append(v, NewVertex3D(vertices[i], vertices[i+1], vertices[i+2]))
 	}
 	return &Face3D{
 		Vertices: v,
@@ -251,7 +251,7 @@ func (f *Face3D) Centroid() *Vertex3D {
 		y += vertex.Y
 		z += vertex.Z
 	}
-	return &Vertex3D{x / float64(len(f.Vertices)), y / float64(len(f.Vertices)), z / float64(len(f.Vertices))}
+	return NewVertex3D(x/float64(len(f.Vertices)), y/float64(len(f.Vertices)), z/float64(len(f.Vertices)))
 }
 
 func (f *Face3D) Translate(x, y, z float64) {
@@ -470,4 +470,36 @@ func (f *Face3D) To2D() *Face2D {
 
 	face2D.PD = &ProjectionDetails{basis, [3]float64{refPoint.X, refPoint.Y, refPoint.Z}, f}
 	return face2D
+}
+
+func (f *Face3D) AddTexture(uvCoords ...*Vertex2D) {
+	if len(uvCoords) > 0 {
+		for i, vertex := range f.Vertices {
+			vertex.UV(uvCoords[i].X, uvCoords[i].Y)
+		}
+	} else {
+		f2D := f.To2D()
+
+		// scale f2D so that it fits in a positive 0-1 square
+		min, max := f2D.MinMax()
+
+		diffX := max.X - min.X
+		diffY := max.Y - min.Y
+
+		for _, vertex := range f2D.Vertices {
+			vertex.X = (vertex.X - min.X) / diffX
+			vertex.Y = (vertex.Y - min.Y) / diffY
+		}
+
+		percFace := NewFace2D(
+			0, 0,
+			1, 0,
+			1, 1,
+			0, 1,
+		)
+		f2D.Fit2D(percFace)
+		for i, vertex := range f.Vertices {
+			vertex.UV(f2D.Vertices[i].X, f2D.Vertices[i].Y)
+		}
+	}
 }
