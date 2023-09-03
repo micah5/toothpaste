@@ -477,6 +477,15 @@ func (f *Face3D) AddTexture(uvCoords ...*Vertex2D) {
 		for i, vertex := range f.Vertices {
 			vertex.UV(uvCoords[i].X, uvCoords[i].Y)
 		}
+	} else if len(f.Vertices) == 3 {
+		f.Vertices[0].UV(0, 0)
+		f.Vertices[1].UV(1, 0)
+		f.Vertices[2].UV(0, 1)
+	} else if len(f.Vertices) == 4 {
+		f.Vertices[0].UV(0, 0)
+		f.Vertices[1].UV(1, 0)
+		f.Vertices[2].UV(1, 1)
+		f.Vertices[3].UV(0, 1)
 	} else {
 		f2D := f.To2D()
 
