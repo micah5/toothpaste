@@ -461,7 +461,7 @@ func (n *Node) Center() {
 	ns.Translate(-centroid.X, -centroid.Y, -centroid.Z)
 }
 
-func (n *Node) Attach(nodes Nodes) {
+func (n *Node) Attach(nodes ...*Node) {
 	n.First().InsertAfter(nodes[0].First())
 	//node.Align(n)
 	//node.First().InsertBefore(n.Last())
