@@ -139,6 +139,12 @@ func (n *Node) Faces() []*Face3D {
 	return faces
 }
 
+func (n *Node) Merge(nodes ...*Node) {
+	for _, node := range nodes {
+		n.Last().InsertAfter(node.First())
+	}
+}
+
 func (n *Node) Nodes() Nodes {
 	nodes := Nodes{}
 	cur := n.First()
@@ -455,9 +461,10 @@ func (n *Node) Center() {
 	ns.Translate(-centroid.X, -centroid.Y, -centroid.Z)
 }
 
-func (n *Node) Attach(node *Node) {
-	node.Align(n)
-	node.First().InsertBefore(n.Last())
+func (n *Node) Attach(nodes Nodes) {
+	n.First().InsertAfter(nodes[0].First())
+	//node.Align(n)
+	//node.First().InsertBefore(n.Last())
 }
 
 func (n *Node) First() *Node {
@@ -799,6 +806,45 @@ func (ns Nodes) Flip() {
 	}
 }
 
+func (ns Nodes) Width() float64 {
+	var w float64
+	for _, n := range ns {
+		if n == nil {
+			continue
+		}
+		_w := 0.0
+		for _, v := range n.Outer.Vertices {
+			if v.X > _w {
+				_w = v.X
+			}
+		}
+		if _w > w {
+			w = _w
+		}
+
+	}
+	return w
+}
+
+func (ns Nodes) Height() float64 {
+	var h float64
+	for _, n := range ns {
+		if n == nil {
+			continue
+		}
+		_h := 0.0
+		for _, v := range n.Outer.Vertices {
+			if v.Y > _h {
+				_h = v.Y
+			}
+		}
+		if _h > h {
+			h = _h
+		}
+	}
+	return h
+}
+
 func (ns Nodes) Filter(tags ...string) Nodes {
 	var nodes Nodes
 	for _, node := range ns {
@@ -1018,12 +1064,12 @@ func (ns Nodes) RoundVertices(precision int) {
 	}
 }
 
-func (ns Nodes) Attach(node *Node) {
+/*func (ns Nodes) Attach(node *Node) {
 	for _, n := range ns {
 		_node := node.CopyAll()[0]
 		n.Attach(_node)
 	}
-}
+}*/
 
 // utils
 func getTag(idx int, tags []string) string {
