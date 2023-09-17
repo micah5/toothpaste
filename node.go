@@ -15,14 +15,15 @@ type Node struct {
 	Prev         *Node
 	Next         *Node
 	ImageTexture bool
+	Meta         map[string]interface{}
 }
 
 func NewNode(outer *Face3D, inner ...*Face3D) *Node {
-	return &Node{"", outer, inner, nil, nil, false}
+	return &Node{"", outer, inner, nil, nil, false, nil}
 }
 
 func NewTaggedNode(tag string, outer *Face3D, inner ...*Face3D) *Node {
-	return &Node{tag, outer, inner, nil, nil, false}
+	return &Node{tag, outer, inner, nil, nil, false, nil}
 }
 
 func NewSliceNode(outers ...*Face3D) *Node {
@@ -215,6 +216,7 @@ func (n *Node) Copy() *Node {
 	}
 	copyNode := NewTaggedNode(n.Tag, n.Outer.Copy(), holes...)
 	copyNode.ImageTexture = n.ImageTexture
+	copyNode.Meta = n.Meta
 	return copyNode
 }
 
@@ -233,6 +235,25 @@ func (n *Node) Drop() {
 	}
 	n.Next = nil
 	n.Prev = nil
+}
+
+func (n *Node) SetMeta(key string, value interface{}) {
+	if n.Meta == nil {
+		n.Meta = map[string]interface{}{}
+	}
+	n.Meta[key] = value
+}
+
+func (n *Node) SetMetaAll(key string, value interface{}) {
+	nodes := n.Nodes()
+	nodes.SetMeta(key, value)
+}
+
+func (n *Node) GetMeta(key string) interface{} {
+	if n.Meta == nil {
+		return nil
+	}
+	return n.Meta[key]
 }
 
 func (n *Node) InsertAfter(node *Node) {
@@ -803,6 +824,12 @@ func (ns Nodes) Rotate(deg float64, axis Axis) {
 func (ns Nodes) Flip() {
 	for _, node := range ns {
 		node.Flip()
+	}
+}
+
+func (ns Nodes) SetMeta(key string, value interface{}) {
+	for _, node := range ns {
+		node.SetMeta(key, value)
 	}
 }
 
