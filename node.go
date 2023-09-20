@@ -947,6 +947,8 @@ func (nodes Nodes) CopyAll() Nodes {
 			holes[i] = &Face3D{Vertices: verts}
 		}
 		_node := NewTaggedNode(node.Tag, &Face3D{Vertices: verts}, holes...)
+		_node.ImageTexture = node.ImageTexture
+		_node.Meta = node.Meta
 		if prev != nil {
 			prev.Next = _node
 			_node.Prev = prev
