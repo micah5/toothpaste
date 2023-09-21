@@ -416,6 +416,21 @@ func (n *Node) AddHoles(holes2D ...*Face2D) {
 	n.Inner = append(n.Inner, holes3D...)
 }
 
+func (n *Node) DetachHoles() Nodes {
+	tmpFaces := make([]*Face3D, len(n.Inner))
+	for i, f := range n.Inner {
+		tmpFaces[i] = f.Copy()
+	}
+	n.Inner = nil
+	retNodes := make(Nodes, 0)
+	for _, f := range tmpFaces {
+		_n := NewNode(f)
+		n.Attach(_n)
+		retNodes = append(retNodes, _n)
+	}
+	return retNodes
+}
+
 func (n *Node) Get(tag string) *Node {
 	nodes := n.Nodes()
 	for _, node := range nodes {
