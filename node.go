@@ -421,7 +421,6 @@ func (n *Node) DetachHoles() Nodes {
 	for i, f := range n.Inner {
 		tmpFaces[i] = f.Copy()
 	}
-	n.Inner = nil
 	retNodes := make(Nodes, 0)
 	for _, f := range tmpFaces {
 		_n := NewNode(f)
