@@ -418,7 +418,12 @@ func (f *Face3D) Flatten() []float64 {
 }
 
 func (f *Face3D) Copy() *Face3D {
-	copy := NewFace3D(f.Flatten()...)
+	vertices := make([]*Vertex3D, len(f.Vertices))
+	for i, vertex := range f.Vertices {
+		vertices[i] = vertex.Copy()
+	}
+	copy := &Face3D{Vertices: vertices}
+	//copy := NewFace3D(f.Flatten()...)
 	return copy
 }
 
