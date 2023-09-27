@@ -16,14 +16,19 @@ const (
 // 2D
 type Vertex2D struct {
 	X, Y float64
+	U, V float64 // optional texture coordinates
 }
 
 func NewVertex2D(x, y float64) *Vertex2D {
-	return &Vertex2D{x, y}
+	return &Vertex2D{x, y, 0, 0}
+}
+
+func NewVertex2DWithUV(x, y, u, v float64) *Vertex2D {
+	return &Vertex2D{x, y, u, v}
 }
 
 func (v *Vertex2D) Copy() *Vertex2D {
-	return &Vertex2D{v.X, v.Y}
+	return &Vertex2D{v.X, v.Y, v.U, v.V}
 }
 
 func (v *Vertex2D) Translate(x, y float64) {
@@ -58,6 +63,11 @@ func (v *Vertex2D) String() string {
 	return fmt.Sprintf("{%f, %f}", v.X, v.Y)
 }
 
+func (v *Vertex2D) UV(u, _v float64) {
+	v.U = u
+	v.V = _v
+}
+
 func (v *Vertex2D) Distance(v2 *Vertex2D) float64 {
 	return math.Sqrt(math.Pow(v.X-v2.X, 2) + math.Pow(v.Y-v2.Y, 2))
 }
@@ -71,11 +81,11 @@ func (v *Vertex2D) To3D(_axis ...Axis) *Vertex3D {
 	}
 	switch axis {
 	case XAxis:
-		return NewVertex3D(v.X, 0, v.Y)
+		return NewVertex3DWithUV(v.X, 0, v.Y, v.U, v.V)
 	case YAxis:
-		return NewVertex3D(0, v.Y, v.X)
+		return NewVertex3DWithUV(0, v.Y, v.X, v.U, v.V)
 	case ZAxis:
-		return NewVertex3D(v.X, v.Y, 0)
+		return NewVertex3DWithUV(v.X, v.Y, 0, v.U, v.V)
 	default:
 		return nil
 	}
@@ -89,6 +99,10 @@ type Vertex3D struct {
 
 func NewVertex3D(x, y, z float64) *Vertex3D {
 	return &Vertex3D{x, y, z, 0, 0}
+}
+
+func NewVertex3DWithUV(x, y, z, u, v float64) *Vertex3D {
+	return &Vertex3D{x, y, z, u, v}
 }
 
 func (v *Vertex3D) Copy() *Vertex3D {

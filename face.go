@@ -22,7 +22,7 @@ type Face2D struct {
 func NewFace2D(vertices ...float64) *Face2D {
 	var v []*Vertex2D
 	for i := 0; i < len(vertices); i += 2 {
-		v = append(v, &Vertex2D{vertices[i], vertices[i+1]})
+		v = append(v, NewVertex2D(vertices[i], vertices[i+1]))
 	}
 	return &Face2D{
 		Vertices: v,
@@ -35,7 +35,7 @@ func (f *Face2D) Centroid() *Vertex2D {
 		x += vertex.X
 		y += vertex.Y
 	}
-	return &Vertex2D{x / float64(len(f.Vertices)), y / float64(len(f.Vertices))}
+	return NewVertex2D(x/float64(len(f.Vertices)), y/float64(len(f.Vertices)))
 }
 
 func (f *Face2D) Translate(x, y float64) {
@@ -152,8 +152,8 @@ func (f *Face2D) ToProjection3D(createNewFace bool) *Face3D {
 }
 
 func (f *Face2D) MinMax() (min, max *Vertex2D) {
-	min = &Vertex2D{math.MaxFloat64, math.MaxFloat64}
-	max = &Vertex2D{-math.MaxFloat64, -math.MaxFloat64}
+	min = NewVertex2D(math.MaxFloat64, math.MaxFloat64)
+	max = NewVertex2D(-math.MaxFloat64, -math.MaxFloat64)
 	for _, vertex := range f.Vertices {
 		if vertex.X < min.X {
 			min.X = vertex.X
