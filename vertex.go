@@ -206,9 +206,9 @@ func (v *Vertex3D) Cross(v2 *Vertex3D) float64 {
 }
 
 func (v *Vertex3D) String() string {
-	return fmt.Sprintf("{%f, %f, %f}", v.X, v.Y, v.Z)
+	return fmt.Sprintf("{%f, %f, %f, %f, %f}", v.X, v.Y, v.Z, v.U, v.V)
 }
 
 func (v *Vertex3D) Equals(v2 *Vertex3D) bool {
-	return v.X == v2.X && v.Y == v2.Y && v.Z == v2.Z
+	return v.X == v2.X && v.Y == v2.Y && v.Z == v2.Z && v.U == v2.U && v.V == v2.V
 }
