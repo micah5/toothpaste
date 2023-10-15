@@ -256,6 +256,16 @@ func (n *Node) GetMeta(key string) interface{} {
 	return n.Meta[key]
 }
 
+func (n *Node) GetNodesMeta(key string, value interface{}) Nodes {
+	nodes := make(Nodes, 0)
+	for _, node := range n.Nodes() {
+		if node.GetMeta(key) == value {
+			nodes = append(nodes, node)
+		}
+	}
+	return nodes
+}
+
 func (n *Node) InsertAfter(node *Node) {
 	// Save reference to next Node
 	originalNext := n.Next
@@ -1107,12 +1117,12 @@ func (ns Nodes) RoundVertices(precision int) {
 	}
 }
 
-/*func (ns Nodes) Attach(node *Node) {
+func (ns Nodes) Attach(node *Node) {
 	for _, n := range ns {
 		_node := node.CopyAll()[0]
 		n.Attach(_node)
 	}
-}*/
+}
 
 // utils
 func getTag(idx int, tags []string) string {
