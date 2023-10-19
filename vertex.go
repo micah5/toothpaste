@@ -82,11 +82,11 @@ func (v *Vertex2D) To3D(_axis ...Axis) *Vertex3D {
 	}
 	switch axis {
 	case XAxis:
-		return NewVertex3DWithUV(v.X, 0, v.Y, v.U, v.V)
+		return NewLabelledVertex3DWithUV(v.X, 0, v.Y, v.U, v.V, v.Label)
 	case YAxis:
-		return NewVertex3DWithUV(0, v.Y, v.X, v.U, v.V)
+		return NewLabelledVertex3DWithUV(0, v.Y, v.X, v.U, v.V, v.Label)
 	case ZAxis:
-		return NewVertex3DWithUV(v.X, v.Y, 0, v.U, v.V)
+		return NewLabelledVertex3DWithUV(v.X, v.Y, 0, v.U, v.V, v.Label)
 	default:
 		return nil
 	}
@@ -96,18 +96,23 @@ func (v *Vertex2D) To3D(_axis ...Axis) *Vertex3D {
 type Vertex3D struct {
 	X, Y, Z float64
 	U, V    float64 // optional texture coordinates
+	Label   string  // optional label for uv mapping purposes
 }
 
 func NewVertex3D(x, y, z float64) *Vertex3D {
-	return &Vertex3D{x, y, z, 0, 0}
+	return &Vertex3D{x, y, z, 0, 0, ""}
 }
 
 func NewVertex3DWithUV(x, y, z, u, v float64) *Vertex3D {
-	return &Vertex3D{x, y, z, u, v}
+	return &Vertex3D{x, y, z, u, v, ""}
+}
+
+func NewLabelledVertex3DWithUV(x, y, z, u, v float64, label string) *Vertex3D {
+	return &Vertex3D{x, y, z, u, v, label}
 }
 
 func (v *Vertex3D) Copy() *Vertex3D {
-	return &Vertex3D{v.X, v.Y, v.Z, v.U, v.V}
+	return &Vertex3D{v.X, v.Y, v.Z, v.U, v.V, v.Label}
 }
 
 func (v *Vertex3D) UV(u, _v float64) {

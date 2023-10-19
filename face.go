@@ -525,6 +525,15 @@ func (f *Face3D) To2D() *Face2D {
 	return face2D
 }
 
+func (f *Faced3D) Find(label string) *Vertex3D {
+	for _, vertex := range f.Vertices {
+		if vertex.Label == label {
+			return vertex
+		}
+	}
+	return nil
+}
+
 func (f *Face3D) AddTexture(uvCoords ...*Vertex2D) {
 	if len(uvCoords) > 0 {
 		for i, vertex := range f.Vertices {
