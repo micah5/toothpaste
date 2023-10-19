@@ -206,6 +206,54 @@ func (f *Face2D) To3D(params ...interface{}) *Face3D {
 	}
 }
 
+func (f *Face2D) Bounds() (minX, minY, maxX, maxY float64) {
+	minX, minY = f.Vertices[0].X, f.Vertices[0].Y
+	maxX, maxY = minX, minY
+
+	for _, v := range f.Vertices {
+		if v.X < minX {
+			minX = v.X
+		}
+		if v.Y < minY {
+			minY = v.Y
+		}
+		if v.X > maxX {
+			maxX = v.X
+		}
+		if v.Y > maxY {
+			maxY = v.Y
+		}
+	}
+
+	return
+}
+
+func (f *Face2D) MapUVs(minX, minY, maxX, maxY float64) {
+	pMinX, pMinY, pMaxX, pMaxY := f.Bounds()
+
+	// Map the polygon to the specified bounds
+	for i, v := range f.Vertices {
+		normalizedX := (v.X - pMinX) / (pMaxX - pMinX)
+		normalizedY := (v.Y - pMinY) / (pMaxY - pMinY)
+
+		f.Vertices[i].U = lerp(minX, maxX, normalizedX)
+		f.Vertices[i].V = lerp(minY, maxY, normalizedY)
+	}
+}
+
+func (f *Face2D) Find(label string) *Vertex2D {
+	for _, vertex := range f.Vertices {
+		if vertex.Label == label {
+			return vertex
+		}
+	}
+	return nil
+}
+
+func lerp(a, b, t float64) float64 {
+	return a + (b-a)*t
+}
+
 // 3D
 type Face3D struct {
 	Vertices  []*Vertex3D

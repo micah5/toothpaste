@@ -15,20 +15,21 @@ const (
 
 // 2D
 type Vertex2D struct {
-	X, Y float64
-	U, V float64 // optional texture coordinates
+	X, Y  float64
+	U, V  float64 // optional texture coordinates
+	Label string  // optional label for uv mapping purposes
 }
 
 func NewVertex2D(x, y float64) *Vertex2D {
-	return &Vertex2D{x, y, 0, 0}
+	return &Vertex2D{x, y, 0, 0, ""}
 }
 
 func NewVertex2DWithUV(x, y, u, v float64) *Vertex2D {
-	return &Vertex2D{x, y, u, v}
+	return &Vertex2D{x, y, u, v, ""}
 }
 
 func (v *Vertex2D) Copy() *Vertex2D {
-	return &Vertex2D{v.X, v.Y, v.U, v.V}
+	return &Vertex2D{v.X, v.Y, v.U, v.V, v.Label}
 }
 
 func (v *Vertex2D) Translate(x, y float64) {
