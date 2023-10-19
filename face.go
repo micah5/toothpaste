@@ -181,6 +181,17 @@ func (f *Face2D) Width() float64 {
 	return max.X - min.X
 }
 
+func (f *Face2D) TopLeftVertex() *Vertex2D {
+	// Find the vertex in the top left hand corner by finding the vertex with the lowest x and y values
+	var topLeft *Vertex2D
+	for _, vertex := range f.Vertices {
+		if topLeft == nil || vertex.X < topLeft.X || vertex.Y < topLeft.Y {
+			topLeft = vertex
+		}
+	}
+	return topLeft
+}
+
 func (f *Face2D) ToFixed3D(axis ...Axis) *Face3D {
 	face3D := NewFace3D()
 	for _, vertex := range f.Vertices {
@@ -248,10 +259,6 @@ func (f *Face2D) Find(label string) *Vertex2D {
 		}
 	}
 	return nil
-}
-
-func lerp(a, b, t float64) float64 {
-	return a + (b-a)*t
 }
 
 // 3D
@@ -573,4 +580,8 @@ func (f *Face3D) AddTexture(uvCoords ...*Vertex2D) {
 			vertex.UV(f2D.Vertices[i].X, f2D.Vertices[i].Y)
 		}
 	}
+}
+
+func lerp(a, b, t float64) float64 {
+	return a + (b-a)*t
 }
