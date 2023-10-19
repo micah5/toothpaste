@@ -61,7 +61,7 @@ func (v *Vertex2D) MoveTo(x, y float64) {
 }
 
 func (v *Vertex2D) String() string {
-	return fmt.Sprintf("{%f, %f}", v.X, v.Y)
+	return fmt.Sprintf("{%f, %f, %f, %f, %s}", v.X, v.Y, v.U, v.V, v.Label)
 }
 
 func (v *Vertex2D) UV(u, _v float64) {
@@ -212,7 +212,7 @@ func (v *Vertex3D) Cross(v2 *Vertex3D) float64 {
 }
 
 func (v *Vertex3D) String() string {
-	return fmt.Sprintf("{%f, %f, %f, %f, %f}", v.X, v.Y, v.Z, v.U, v.V)
+	return fmt.Sprintf("{%f, %f, %f, %f, %f, %s}", v.X, v.Y, v.Z, v.U, v.V, v.Label)
 }
 
 func (v *Vertex3D) Equals(v2 *Vertex3D) bool {
