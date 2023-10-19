@@ -209,6 +209,18 @@ func (n *Node) Detach() *Node {
 	return tmp
 }
 
+func (n *Node) DetachVertices() {
+	// Keep the node atatched to the other nodes,
+	// but detach the vertices from the node
+	// so that they can be moved independently
+	newVertices := make([]*Vertex3D, 0)
+	for _, vertex := range n.Outer.Vertices {
+		newVertex := vertex.Copy()
+		newVertices = append(newVertices, newVertex)
+	}
+	n.Outer.Vertices = newVertices
+}
+
 func (n *Node) Copy() *Node {
 	holes := make([]*Face3D, len(n.Inner))
 	for i, f := range n.Inner {
