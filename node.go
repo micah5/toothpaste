@@ -213,14 +213,14 @@ func (n *Node) DetachVertices() {
 	// Keep the node atatched to the other nodes,
 	// but detach the vertices from the node
 	// so that they can be moved independently
-	newVertices := make([]*Vertex3D, 0)
 	for _, face := range n.Faces() {
+		newVertices := make([]*Vertex3D, 0)
 		for _, vertex := range face.Vertices {
 			newVertex := vertex.Copy()
 			newVertices = append(newVertices, newVertex)
 		}
+		face.Vertices = newVertices
 	}
-	n.Outer.Vertices = newVertices
 }
 
 func (n *Node) Copy() *Node {
