@@ -182,13 +182,19 @@ func (f *Face2D) Width() float64 {
 }
 
 func (f *Face2D) TopLeftVertex() *Vertex2D {
-	// Find the vertex in the top left hand corner by finding the vertex with the lowest x and y values
+	// Return a vertex with the smallest x and y values
+	// It does not need to be an existing vertex
+	minX, minY := math.MaxFloat64, math.MaxFloat64
 	var topLeft *Vertex2D
 	for _, vertex := range f.Vertices {
-		if topLeft == nil || vertex.X < topLeft.X || vertex.Y < topLeft.Y {
-			topLeft = vertex
+		if vertex.X < minX {
+			minX = vertex.X
+		}
+		if vertex.Y < minY {
+			minY = vertex.Y
 		}
 	}
+	topLeft = NewVertex2D(minX, minY)
 	return topLeft
 }
 
