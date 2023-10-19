@@ -474,6 +474,14 @@ func (n *Node) GetPrev(num int) Nodes {
 	return nodes
 }
 
+func (n *Node) GetPrevByIndex(index int) *Node {
+	cur := n
+	for i := 0; i < index; i++ {
+		cur = cur.Prev
+	}
+	return cur
+}
+
 func (n *Node) GetNext(num int) Nodes {
 	nodes := Nodes{}
 	cur := n.Next
@@ -482,6 +490,14 @@ func (n *Node) GetNext(num int) Nodes {
 		cur = cur.Next
 	}
 	return nodes
+}
+
+func (n *Node) GetNextByIndex(index int) *Node {
+	cur := n
+	for i := 0; i < index; i++ {
+		cur = cur.Next
+	}
+	return cur
 }
 
 func (n *Node) GetAll(tags ...string) Nodes {
