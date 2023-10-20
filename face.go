@@ -258,33 +258,6 @@ func (f *Face2D) MapUVs(minX, minY, maxX, maxY float64) {
 	}
 }
 
-func (f *Face2D) MapMultiRangeUVs(xFromRanges, xToRanges, yFromRanges, yToRanges []float64) {
-	if len(xFromRanges) != len(xToRanges) || len(yFromRanges) != len(yToRanges) {
-		panic("Mismatched range lengths")
-	}
-
-	pMinX, pMinY, pMaxX, pMaxY := f.Bounds()
-
-	mapRange := func(val, min, max float64, fromRanges, toRanges []float64) float64 {
-		normalized := (val - min) / (max - min)
-		for i := 0; i < len(fromRanges); i++ {
-			if normalized >= fromRanges[i] && normalized <= toRanges[i] {
-				rangeWidth := toRanges[i] - fromRanges[i]
-				if rangeWidth == 0 {
-					return fromRanges[i]
-				}
-				return lerp(fromRanges[i], toRanges[i], (normalized-fromRanges[i])/rangeWidth)
-			}
-		}
-		return normalized
-	}
-
-	for i, v := range f.Vertices {
-		f.Vertices[i].U = mapRange(v.X, pMinX, pMaxX, xFromRanges, xToRanges)
-		f.Vertices[i].V = mapRange(v.Y, pMinY, pMaxY, yFromRanges, yToRanges)
-	}
-}
-
 func (f *Face2D) Find(label string) *Vertex2D {
 	for _, vertex := range f.Vertices {
 		if vertex.Label == label {
@@ -292,6 +265,51 @@ func (f *Face2D) Find(label string) *Vertex2D {
 		}
 	}
 	return nil
+}
+
+type SplitRange struct {
+	SplitPercent float64
+	MinU         float64
+	MaxU         float64
+}
+
+func NewSplitRange(splitPercent, minU, maxU float64) SplitRange {
+	return SplitRange{splitPercent, minU, maxU}
+}
+
+func (f *Face2D) MapUVsWithMultipleSplits(minY, maxY float64, splits []SplitRange) {
+	pMinX, pMinY, pMaxX, pMaxY := f.Bounds()
+
+	// Sort splits by SplitPercent
+	sort.Slice(splits, func(i, j int) bool {
+		return splits[i].SplitPercent < splits[j].SplitPercent
+	})
+
+	// Map the polygon to the specified bounds
+	for i, v := range f.Vertices {
+		normalizedX := (v.X - pMinX) / (pMaxX - pMinX)
+		normalizedY := (v.Y - pMinY) / (pMaxY - pMinY)
+
+		// Determine the correct split range for this vertex
+		var minU, maxU float64
+		previousSplit := 0.0
+		for _, split := range splits {
+			if normalizedX < split.SplitPercent {
+				minU = lerp(previousSplit, split.MinU, (normalizedX-previousSplit)/(split.SplitPercent-previousSplit))
+				maxU = lerp(previousSplit, split.MaxU, (normalizedX-previousSplit)/(split.SplitPercent-previousSplit))
+				break
+			}
+			previousSplit = split.SplitPercent
+		}
+
+		if minU == 0 && maxU == 0 {
+			minU = splits[len(splits)-1].MinU
+			maxU = splits[len(splits)-1].MaxU
+		}
+
+		f.Vertices[i].U = lerp(minU, maxU, (normalizedX-previousSplit)/(1-previousSplit))
+		f.Vertices[i].V = lerp(minY, maxY, normalizedY)
+	}
 }
 
 // 3D
