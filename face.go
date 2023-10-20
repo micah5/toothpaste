@@ -258,6 +258,33 @@ func (f *Face2D) MapUVs(minX, minY, maxX, maxY float64) {
 	}
 }
 
+func (f *Face2D) MapMultiRangeUVs(xRanges, yRanges []struct {
+	from, to float64
+}) {
+	pMinX, pMinY, pMaxX, pMaxY := f.Bounds()
+
+	mapRange := func(val, min, max float64, ranges []struct {
+		from, to float64
+	}) float64 {
+		normalized := (val - min) / (max - min)
+		for _, r := range ranges {
+			if normalized >= r.from && normalized <= r.to {
+				rangeWidth := r.to - r.from
+				if rangeWidth == 0 {
+					return r.from
+				}
+				return lerp(r.from, r.to, (normalized-r.from)/rangeWidth)
+			}
+		}
+		return normalized
+	}
+
+	for i, v := range f.Vertices {
+		f.Vertices[i].U = mapRange(v.X, pMinX, pMaxX, xRanges)
+		f.Vertices[i].V = mapRange(v.Y, pMinY, pMaxY, yRanges)
+	}
+}
+
 func (f *Face2D) Find(label string) *Vertex2D {
 	for _, vertex := range f.Vertices {
 		if vertex.Label == label {
