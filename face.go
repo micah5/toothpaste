@@ -268,51 +268,6 @@ func (f *Face2D) Find(label string) *Vertex2D {
 	return nil
 }
 
-type SplitRange struct {
-	SplitPercent float64
-	MinU         float64
-	MaxU         float64
-}
-
-func NewSplitRange(splitPercent, minU, maxU float64) SplitRange {
-	return SplitRange{splitPercent, minU, maxU}
-}
-
-func (f *Face2D) MapUVsWithMultipleSplits(minY, maxY float64, splits []SplitRange) {
-	pMinX, pMinY, pMaxX, pMaxY := f.Bounds()
-
-	// Sort splits by SplitPercent
-	sort.Slice(splits, func(i, j int) bool {
-		return splits[i].SplitPercent < splits[j].SplitPercent
-	})
-
-	// Map the polygon to the specified bounds
-	for i, v := range f.Vertices {
-		normalizedX := (v.X - pMinX) / (pMaxX - pMinX)
-		normalizedY := (v.Y - pMinY) / (pMaxY - pMinY)
-
-		// Determine the correct split range for this vertex
-		var minU, maxU float64
-		previousSplit := 0.0
-		for _, split := range splits {
-			if normalizedX < split.SplitPercent {
-				minU = lerp(previousSplit, split.MinU, (normalizedX-previousSplit)/(split.SplitPercent-previousSplit))
-				maxU = lerp(previousSplit, split.MaxU, (normalizedX-previousSplit)/(split.SplitPercent-previousSplit))
-				break
-			}
-			previousSplit = split.SplitPercent
-		}
-
-		if minU == 0 && maxU == 0 {
-			minU = splits[len(splits)-1].MinU
-			maxU = splits[len(splits)-1].MaxU
-		}
-
-		f.Vertices[i].U = lerp(minU, maxU, (normalizedX-previousSplit)/(1-previousSplit))
-		f.Vertices[i].V = lerp(minY, maxY, normalizedY)
-	}
-}
-
 // 3D
 type Face3D struct {
 	Vertices  []*Vertex3D
