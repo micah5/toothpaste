@@ -258,30 +258,30 @@ func (f *Face2D) MapUVs(minX, minY, maxX, maxY float64) {
 	}
 }
 
-func (f *Face2D) MapMultiRangeUVs(xRanges, yRanges []struct {
-	from, to float64
-}) {
+func (f *Face2D) MapMultiRangeUVs(xFromRanges, xToRanges, yFromRanges, yToRanges []float64) {
+	if len(xFromRanges) != len(xToRanges) || len(yFromRanges) != len(yToRanges) {
+		panic("Mismatched range lengths")
+	}
+
 	pMinX, pMinY, pMaxX, pMaxY := f.Bounds()
 
-	mapRange := func(val, min, max float64, ranges []struct {
-		from, to float64
-	}) float64 {
+	mapRange := func(val, min, max float64, fromRanges, toRanges []float64) float64 {
 		normalized := (val - min) / (max - min)
-		for _, r := range ranges {
-			if normalized >= r.from && normalized <= r.to {
-				rangeWidth := r.to - r.from
+		for i := 0; i < len(fromRanges); i++ {
+			if normalized >= fromRanges[i] && normalized <= toRanges[i] {
+				rangeWidth := toRanges[i] - fromRanges[i]
 				if rangeWidth == 0 {
-					return r.from
+					return fromRanges[i]
 				}
-				return lerp(r.from, r.to, (normalized-r.from)/rangeWidth)
+				return lerp(fromRanges[i], toRanges[i], (normalized-fromRanges[i])/rangeWidth)
 			}
 		}
 		return normalized
 	}
 
 	for i, v := range f.Vertices {
-		f.Vertices[i].U = mapRange(v.X, pMinX, pMaxX, xRanges)
-		f.Vertices[i].V = mapRange(v.Y, pMinY, pMaxY, yRanges)
+		f.Vertices[i].U = mapRange(v.X, pMinX, pMaxX, xFromRanges, xToRanges)
+		f.Vertices[i].V = mapRange(v.Y, pMinY, pMaxY, yFromRanges, yToRanges)
 	}
 }
 
