@@ -454,6 +454,16 @@ func (n *Node) DetachHoles() Nodes {
 	return retNodes
 }
 
+func (n *Node) DetachHole(index int) *Node {
+	tmpFaces := make([]*Face3D, len(n.Inner))
+	for i, f := range n.Inner {
+		tmpFaces[i] = f.Copy()
+	}
+	_n := NewNode(tmpFaces[index])
+	n.Attach(_n)
+	return _n
+}
+
 func (n *Node) Get(tag string) *Node {
 	nodes := n.Nodes()
 	for _, node := range nodes {
