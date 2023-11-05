@@ -41,6 +41,18 @@ func NewSliceNode(outers ...*Face3D) *Node {
 	return prev
 }
 
+func NewLinkedNodes(nodes ...*toothpaste.Node) *Node {
+	var prev *Node
+	for _, node := range nodes {
+		if prev != nil {
+			prev.Next = node
+			node.Prev = prev
+		}
+		prev = node
+	}
+	return prev
+}
+
 func (n *Node) ExtrudeLoop(numIter int, fn func(int, *Node) float64, tags ...string) *Node {
 	var node *Node = n
 	for i := 0; i < numIter; i++ {
