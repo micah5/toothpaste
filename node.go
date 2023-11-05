@@ -41,7 +41,7 @@ func NewSliceNode(outers ...*Face3D) *Node {
 	return prev
 }
 
-func NewLinkedNodes(nodes ...*toothpaste.Node) *Node {
+func NewLinkedNodes(nodes ...*Node) *Node {
 	var prev *Node
 	for _, node := range nodes {
 		if prev != nil {
