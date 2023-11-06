@@ -1051,14 +1051,24 @@ func deepCopyValue(value interface{}) interface{} {
 		return nil
 	}
 
-	val := reflect.ValueOf(value)
-	switch val.Kind() {
+	// Use reflection to handle arbitrary types
+	originalValue := reflect.ValueOf(value)
+
+	switch originalValue.Kind() {
 	case reflect.Map:
-		mapValue := value.(map[string]interface{})
-		return deepCopyMap(mapValue)
+		// Create a new map with the same type as the original
+		newMap := reflect.MakeMap(originalValue.Type())
+		for _, key := range originalValue.MapKeys() {
+			originalMapValue := originalValue.MapIndex(key)
+			// Recursively deep copy the map value
+			newMap.SetMapIndex(key, reflect.ValueOf(deepCopyValue(originalMapValue.Interface())))
+		}
+		return newMap.Interface()
 	case reflect.Slice:
-		return deepCopySlice(val)
+		// Handle slice separately
+		return deepCopySlice(originalValue)
 	default:
+		// If it's not a map or slice, return the value as is
 		return value
 	}
 }
