@@ -5,6 +5,7 @@ import (
 	"github.com/micah5/earcut-3d"
 	"math"
 	"os"
+	"reflect"
 	"strings"
 )
 
@@ -1024,7 +1025,7 @@ func (nodes Nodes) CopyAll() Nodes {
 		}
 		_node := NewTaggedNode(node.Tag, &Face3D{Vertices: verts}, holes...)
 		_node.ImageTexture = node.ImageTexture
-		_node.Meta = node.Meta
+		_node.Meta = deepCopyMap(node.Meta)
 		if prev != nil {
 			prev.Next = _node
 			_node.Prev = prev
@@ -1034,6 +1035,40 @@ func (nodes Nodes) CopyAll() Nodes {
 	}
 
 	return res
+}
+
+func deepCopyMap(originalMap map[string]interface{}) map[string]interface{} {
+	newMap := make(map[string]interface{})
+	for key, value := range originalMap {
+		newValue := deepCopyValue(value)
+		newMap[key] = newValue
+	}
+	return newMap
+}
+
+func deepCopyValue(value interface{}) interface{} {
+	if value == nil {
+		return nil
+	}
+
+	val := reflect.ValueOf(value)
+	switch val.Kind() {
+	case reflect.Map:
+		mapValue := value.(map[string]interface{})
+		return deepCopyMap(mapValue)
+	case reflect.Slice:
+		return deepCopySlice(val)
+	default:
+		return value
+	}
+}
+
+func deepCopySlice(original reflect.Value) interface{} {
+	copy := reflect.MakeSlice(original.Type(), original.Len(), original.Cap())
+	for i := 0; i < original.Len(); i++ {
+		copy.Index(i).Set(reflect.ValueOf(deepCopyValue(original.Index(i).Interface())))
+	}
+	return copy.Interface()
 }
 
 func (ns Nodes) Copy() Nodes {
