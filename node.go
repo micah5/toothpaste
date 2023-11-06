@@ -1065,10 +1065,8 @@ func deepCopyValue(value interface{}) interface{} {
 		}
 		return newMap.Interface()
 	case reflect.Slice:
-		// Handle slice separately
 		return deepCopySlice(originalValue)
 	default:
-		// If it's not a map or slice, return the value as is
 		return value
 	}
 }
