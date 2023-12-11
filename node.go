@@ -686,6 +686,7 @@ func (node *Node) GenerateColor(name string, _colors ...map[string][3]float64) {
 	}
 	trianglesByTag := make(map[string][][]float64)
 	metaTag := make(map[string]TypedTag)
+	normalIndices := make(map[int]int)
 	for i, face := range faces2 {
 		tag := nodes[i].Tag
 		if tag == "" {
@@ -706,6 +707,11 @@ func (node *Node) GenerateColor(name string, _colors ...map[string][3]float64) {
 		for _, triangleArray := range face {
 			trianglesByTag[tag] = append(trianglesByTag[tag], triangleArray)
 		}
+
+		// Write normal
+		normal := nodes[i].Outer.Normal()
+		f.WriteString(fmt.Sprintf("vn %f %f %f\n", normal.X, normal.Y, normal.Z))
+		normalIndices[i] = i + 1
 	}
 
 	// Write texture coordinates
@@ -736,11 +742,15 @@ func (node *Node) GenerateColor(name string, _colors ...map[string][3]float64) {
 						}
 					}
 				}
+
+				// Write vertex, texture, and normal indices
+				normalIndex := normalIndices[meta.Index]
 				if uvIndex != -1 {
-					f.WriteString(fmt.Sprintf(" %d/%d", vertexIndices[key], uvIndex))
+					f.WriteString(fmt.Sprintf(" %d/%d/%d", vertexIndices[key], uvIndex, normalIndex))
 				} else {
-					f.WriteString(fmt.Sprintf(" %d", vertexIndices[key]))
+					f.WriteString(fmt.Sprintf(" %d//%d", vertexIndices[key], normalIndex))
 				}
+				normalIndex += 1
 			}
 			f.WriteString("\n")
 		}
