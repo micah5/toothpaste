@@ -685,6 +685,7 @@ func (node *Node) GenerateColor(name string, _colors ...map[string][3]float64) {
 		Index        int
 	}
 	trianglesByTag := make(map[string][][]float64)
+	nodeIndicesByTag := make(map[string][]int)
 	metaTag := make(map[string]TypedTag)
 	normalIndices := make(map[int]int)
 	for i, face := range faces2 {
@@ -706,6 +707,7 @@ func (node *Node) GenerateColor(name string, _colors ...map[string][3]float64) {
 		}
 		for _, triangleArray := range face {
 			trianglesByTag[tag] = append(trianglesByTag[tag], triangleArray)
+			nodeIndicesByTag[tag] = append(nodeIndicesByTag[tag], i)
 		}
 
 		// Write normal
@@ -726,7 +728,7 @@ func (node *Node) GenerateColor(name string, _colors ...map[string][3]float64) {
 	// Write faces
 	for tag, triangles := range trianglesByTag {
 		f.WriteString(fmt.Sprintf("usemtl %s\n", tag))
-		for _, triangleArray := range triangles {
+		for t_i, triangleArray := range triangles {
 			f.WriteString("f")
 			for i := 0; i < len(triangleArray); i += 3 {
 				key := [3]float64{triangleArray[i], triangleArray[i+1], triangleArray[i+2]}
@@ -744,7 +746,7 @@ func (node *Node) GenerateColor(name string, _colors ...map[string][3]float64) {
 				}
 
 				// Write vertex, texture, and normal indices
-				normalIndex := normalIndices[meta.Index]
+				normalIndex := normalIndices[nodeIndicesByTag[tag][t_i]]
 				if uvIndex != -1 {
 					f.WriteString(fmt.Sprintf(" %d/%d/%d", vertexIndices[key], uvIndex, normalIndex))
 				} else {
