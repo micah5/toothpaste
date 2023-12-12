@@ -641,7 +641,7 @@ func (node *Node) GenerateColor(name string, _colors ...map[string][3]float64) {
 		for _, vertex := range n.Outer.Vertices {
 			uniqueUVs[[2]float64{vertex.U, vertex.V}] = 1
 		}
-	}
+
 	uvIndices := make(map[[2]float64]int)
 	for uvCoord := range uniqueUVs {
 		uvIndices[uvCoord] = len(uvIndices) + 1
@@ -697,8 +697,9 @@ func (node *Node) GenerateColor(name string, _colors ...map[string][3]float64) {
 		if imageTexture {
 			path := nodes[i].Tag
 			// split on / and take the last element, also remove the .png or .jpg or whatever
-			tag = strings.Split(tag, "/")[len(strings.Split(tag, "/"))-1]
-			tag = strings.Split(tag, ".")[0]
+			//tag = strings.Split(tag, "/")[len(strings.Split(tag, "/"))-1]
+			//tag = strings.Split(tag, ".")[0]
+			tag := path
 			metaTag[tag] = TypedTag{
 				ImageTexture: imageTexture,
 				Path:         path,
