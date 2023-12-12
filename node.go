@@ -737,10 +737,12 @@ func (node *Node) GenerateColor(name string, _colors ...map[string][3]float64) {
 				uvIndex := -1
 				meta := metaTag[tag]
 				if meta.ImageTexture {
-					for _, n := range nodes[meta.Index].Outer.Vertices {
-						if n.X == key[0] && n.Y == key[1] && n.Z == key[2] {
-							uvIndex = uvIndices[[2]float64{n.U, n.V}]
-							break
+					for _, idx := range nodeIndicesByTag[tag] {
+						for _, n := range nodes[idx].Outer.Vertices {
+							if n.X == key[0] && n.Y == key[1] && n.Z == key[2] {
+								uvIndex = uvIndices[[2]float64{n.U, n.V}]
+								break
+							}
 						}
 					}
 				}
