@@ -208,7 +208,15 @@ func (v *Vertex3D) Angle(v2 *Vertex3D) float64 {
 }
 
 func (v *Vertex3D) Cross(v2 *Vertex3D) float64 {
-	return v.X*v2.Y - v.Y*v2.X
+	return &Vertex3D{
+		X: v.Y*v2.Z - v.Z*v2.Y,
+		Y: v.Z*v2.X - v.X*v2.Z,
+		Z: v.X*v2.Y - v.Y*v2.X,
+	}
+}
+
+func (v *Vertex3D) Dot(v2 *Vertex3D) float64 {
+	return v.X*v2.X + v.Y*v2.Y + v.Z*v2.Z
 }
 
 func (v *Vertex3D) String() string {
