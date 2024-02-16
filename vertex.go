@@ -207,7 +207,7 @@ func (v *Vertex3D) Angle(v2 *Vertex3D) float64 {
 	return math.Atan2(v2.Y-v.Y, v2.X-v.X) * (180 / math.Pi)
 }
 
-func (v *Vertex3D) Cross(v2 *Vertex3D) float64 {
+func (v *Vertex3D) Cross(v2 *Vertex3D) *Vertex3D {
 	return &Vertex3D{
 		X: v.Y*v2.Z - v.Z*v2.Y,
 		Y: v.Z*v2.X - v.X*v2.Z,
