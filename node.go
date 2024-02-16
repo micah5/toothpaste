@@ -1190,6 +1190,38 @@ func (ns Nodes) GetAll(tag string) Nodes {
 	return ns[0].GetAll(tag)
 }
 
+func (ns Nodes) JoinIfWithin(distance float64) {
+	// find the closest nodes and join them if they are within distance
+	// and if they are not already joined
+	// this is a naive implementation and will not work for all cases
+	// but it is good enough for simple cases
+
+	// find all the unique vertices
+	uniques := ns.UniqueVertices()
+
+	// find the closest vertices
+	// and join them if they are within distance
+	for i, v := range uniques {
+		for j := i + 1; j < len(uniques); j++ {
+			v2 := uniques[j]
+			if v.Distance(v2) < distance {
+				for _, node := range ns {
+					faces := node.Faces()
+					for _, face := range faces {
+						for k, v3 := range face.Vertices {
+							if v3.Equals(v2) {
+								face.Vertices[k] = v
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	ns.LinkVertices()
+}
+
 func (ns Nodes) LinkVertices() {
 	uniques := ns.UniqueVertices()
 	for _, node := range ns {
