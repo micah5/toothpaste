@@ -1282,6 +1282,8 @@ func extrude(n *Node, faces []*Face3D, height float64, addHoles bool, tags ...st
 
 	// Negate the normal vector components to flip the direction
 	normal := faces[0].Normal()
+	fmt.Println("faces[0]", faces[0].Flatten())
+	fmt.Println("normal", normal)
 	normal.Mul(-1)
 
 	// Create the top face
