@@ -1,6 +1,7 @@
 package toothpaste
 
 import (
+	"fmt"
 	"github.com/micah5/earcut-3d"
 	"github.com/micah5/exhaustive-fitter"
 	"math"
@@ -520,42 +521,41 @@ func (f *Face3D) Flip() {
 	}
 }
 
-func (f *Face3D) FlipOnAxis(axis ...Axis) {
-	// Determine the axis to flip around, default to YAxis if none specified
-	flipAxis := YAxis
-	if len(axis) > 0 {
-		flipAxis = axis[0]
+func (f *Face3D) FlipOnAxis(axis Axis) {
+	// Calculate the average Y value of all vertices
+	var sumY float64
+	for _, v := range f.Vertices {
+		sumY += v.Y
+	}
+	avgY := sumY / float64(len(f.Vertices))
+	fmt.Printf("Average Y before flip: %v\n", avgY)
+
+	// Print vertices before mirroring
+	fmt.Println("Vertices before mirroring:")
+	for _, v := range f.Vertices {
+		fmt.Printf("{%v, %v, %v}\n", v.X, v.Y, v.Z)
 	}
 
-	// Calculate the average value of the specified axis for all vertices
-	var sum float64
+	// Mirror vertices across the average Y value and maintain the X and Z values
 	for _, v := range f.Vertices {
-		switch flipAxis {
-		case XAxis:
-			sum += v.X
-		case YAxis:
-			sum += v.Y
-		case ZAxis:
-			sum += v.Z
-		}
+		v.Y = 2*avgY - v.Y
 	}
-	avg := sum / float64(len(f.Vertices))
 
-	// Mirror vertices across the average value of the specified axis
+	// Print vertices after mirroring but before reversing the order
+	fmt.Println("Vertices after mirroring, before reversing order:")
 	for _, v := range f.Vertices {
-		switch flipAxis {
-		case XAxis:
-			v.X = 2*avg - v.X
-		case YAxis:
-			v.Y = 2*avg - v.Y
-		case ZAxis:
-			v.Z = 2*avg - v.Z
-		}
+		fmt.Printf("{%v, %v, %v}\n", v.X, v.Y, v.Z)
 	}
 
 	// Reverse the order of the mirrored vertices to flip the face
 	for i, j := 0, len(f.Vertices)-1; i < j; i, j = i+1, j-1 {
 		f.Vertices[i], f.Vertices[j] = f.Vertices[j], f.Vertices[i]
+	}
+
+	// Print vertices after reversing the order
+	fmt.Println("Vertices after reversing order:")
+	for _, v := range f.Vertices {
+		fmt.Printf("{%v, %v, %v}\n", v.X, v.Y, v.Z)
 	}
 }
 
