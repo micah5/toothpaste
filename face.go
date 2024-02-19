@@ -534,9 +534,9 @@ func (face *Face3D) Correct() {
 	}
 	A := mat.NewDense(rows, 3, data)
 
-	// Perform SVD
+	// Perform SVD, specifying the kind of matrix to compute
 	var svd mat.SVD
-	ok := svd.Factorize(A, mat.SVDNone)
+	ok := svd.Factorize(A, mat.SVDThin) // Use SVDFull or SVDThin as appropriate
 	if !ok {
 		fmt.Println("SVD factorization failed")
 		return
