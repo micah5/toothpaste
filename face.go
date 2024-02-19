@@ -1,7 +1,6 @@
 package toothpaste
 
 import (
-	"fmt"
 	"github.com/micah5/earcut-3d"
 	"github.com/micah5/exhaustive-fitter"
 	"math"
