@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/micah5/earcut-3d"
 	"github.com/micah5/exhaustive-fitter"
+	"gonum.org/v1/gonum/mat"
+	"gonum.org/v1/gonum/spatial/r3"
 	"math"
 )
 
@@ -521,41 +523,51 @@ func (f *Face3D) Flip() {
 	}
 }
 
-func (f *Face3D) FlipOnAxis(axis Axis) {
-	// Calculate the average Y value of all vertices
-	var sumY float64
-	for _, v := range f.Vertices {
-		sumY += v.Y
-	}
-	avgY := sumY / float64(len(f.Vertices))
-	fmt.Printf("Average Y before flip: %v\n", avgY)
+func (face *Face3D) Correct() {
+	center := face.Centroid()
 
-	// Print vertices before mirroring
-	fmt.Println("Vertices before mirroring:")
-	for _, v := range f.Vertices {
-		fmt.Printf("{%v, %v, %v}\n", v.X, v.Y, v.Z)
+	// Build the matrix A for SVD
+	rows := len(face.Vertices)
+	var data []float64
+	for _, vertex := range face.Vertices {
+		data = append(data, vertex.X-center.X, vertex.Y-center.Y, vertex.Z-center.Z)
 	}
+	A := mat.NewDense(rows, 3, data)
 
-	// Mirror vertices across the average Y value and maintain the X and Z values
-	for _, v := range f.Vertices {
-		v.Y = 2*avgY - v.Y
-	}
-
-	// Print vertices after mirroring but before reversing the order
-	fmt.Println("Vertices after mirroring, before reversing order:")
-	for _, v := range f.Vertices {
-		fmt.Printf("{%v, %v, %v}\n", v.X, v.Y, v.Z)
+	// Perform SVD
+	var svd mat.SVD
+	ok := svd.Factorize(A, mat.SVDNone)
+	if !ok {
+		fmt.Println("SVD factorization failed")
+		return
 	}
 
-	// Reverse the order of the mirrored vertices to flip the face
-	for i, j := 0, len(f.Vertices)-1; i < j; i, j = i+1, j-1 {
-		f.Vertices[i], f.Vertices[j] = f.Vertices[j], f.Vertices[i]
+	// The normal to the best-fit plane is the last column of V (from the SVD of A)
+	var V mat.Dense
+	svd.VTo(&V)
+	normal := r3.Vec{X: V.At(0, 2), Y: V.At(1, 2), Z: V.At(2, 2)}
+
+	// Project vertices onto the best-fit plane
+	for _, vertex := range face.Vertices {
+		offset := r3.Dot(normal, r3.Vec{X: vertex.X - center.X, Y: vertex.Y - center.Y, Z: vertex.Z - center.Z})
+		vertex.X -= offset * normal.X
+		vertex.Y -= offset * normal.Y
+		vertex.Z -= offset * normal.Z
 	}
 
-	// Print vertices after reversing the order
-	fmt.Println("Vertices after reversing order:")
-	for _, v := range f.Vertices {
-		fmt.Printf("{%v, %v, %v}\n", v.X, v.Y, v.Z)
+	// Ensure consistent vertex ordering by checking the direction of the normal
+	// This is a simplified check and might need to be adjusted based on the face's orientation and desired winding order
+	v0 := face.Vertices[0]
+	v1 := face.Vertices[1]
+	v2 := face.Vertices[2]
+	edge1 := r3.Vec{X: v1.X - v0.X, Y: v1.Y - v0.Y, Z: v1.Z - v0.Z}
+	edge2 := r3.Vec{X: v2.X - v1.X, Y: v2.Y - v1.Y, Z: v2.Z - v1.Z}
+	faceNormal := r3.Cross(edge1, edge2)
+	if r3.Dot(faceNormal, normal) < 0 {
+		// Reverse the order of vertices if the face normal and the best-fit plane normal point in opposite directions
+		for i, j := 0, len(face.Vertices)-1; i < j; i, j = i+1, j-1 {
+			face.Vertices[i], face.Vertices[j] = face.Vertices[j], face.Vertices[i]
+		}
 	}
 }
 

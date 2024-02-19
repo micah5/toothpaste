@@ -443,17 +443,10 @@ func (n *Node) Flip() {
 	}
 }
 
-func (n *Node) FlipOnAxis(axis ...Axis) {
-	// Determine the axis to flip around, default to YAxis if none specified
-	flipAxis := YAxis
-	if len(axis) > 0 {
-		flipAxis = axis[0]
-	}
-
-	// Flip the faces
+func (n *Node) Correct() {
 	faces := n.Faces()
 	for _, f := range faces {
-		f.FlipOnAxis(flipAxis)
+		f.Correct()
 	}
 }
 
