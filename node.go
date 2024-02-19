@@ -443,6 +443,13 @@ func (n *Node) Flip() {
 	}
 }
 
+func (n *Node) FlipOnAxis(axis ...Axis) {
+	faces := n.Faces()
+	for _, f := range faces {
+		f.FlipOnAxis(axis...)
+	}
+}
+
 func (n *Node) AddHoles(holes2D ...*Face2D) {
 	holes3D := make([]*Face3D, len(holes2D))
 	for i, h := range holes2D {

@@ -520,6 +520,45 @@ func (f *Face3D) Flip() {
 	}
 }
 
+func (f *Face3D) FlipOnAxis(axis ...Axis) {
+	// Determine the axis to flip around, default to YAxis if none specified
+	flipAxis := YAxis
+	if len(axis) > 0 {
+		flipAxis = axis[0]
+	}
+
+	// Calculate the average value of the specified axis for all vertices
+	var sum float64
+	for _, v := range f.Vertices {
+		switch flipAxis {
+		case XAxis:
+			sum += v.X
+		case YAxis:
+			sum += v.Y
+		case ZAxis:
+			sum += v.Z
+		}
+	}
+	avg := sum / float64(len(f.Vertices))
+
+	// Mirror vertices across the average value of the specified axis
+	for _, v := range f.Vertices {
+		switch flipAxis {
+		case XAxis:
+			v.X = 2*avg - v.X
+		case YAxis:
+			v.Y = 2*avg - v.Y
+		case ZAxis:
+			v.Z = 2*avg - v.Z
+		}
+	}
+
+	// Reverse the order of the mirrored vertices to flip the face
+	for i, j := 0, len(f.Vertices)-1; i < j; i, j = i+1, j-1 {
+		f.Vertices[i], f.Vertices[j] = f.Vertices[j], f.Vertices[i]
+	}
+}
+
 func (f *Face3D) ShareVertices(other *Face3D) bool {
 	for _, vertex := range f.Vertices {
 		for _, otherVertex := range other.Vertices {
