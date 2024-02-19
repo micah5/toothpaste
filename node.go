@@ -1280,20 +1280,30 @@ func extrude(n *Node, faces []*Face3D, height float64, addHoles bool, tags ...st
 		next = n.Next
 	}
 
-	// Negate the normal vector components to flip the direction
+	fmt.Printf("Extrusion height: %v\n", height)
+
+	// Get the normal of the first face
 	normal := faces[0].Normal()
-	fmt.Println("faces[0]", faces[0].Flatten())
-	fmt.Println("normal", normal)
-	normal.Mul(-1)
+	fmt.Printf("Original normal for face[0]: %v\n", normal)
+
+	// Optionally negate the normal vector components to flip the direction
+	// Commenting out negation to test the effect
+	// normal.Mul(-1)
+	// fmt.Printf("Negated normal for face[0]: %v\n", normal)
 
 	// Create the top face
 	top := faces[0].Copy()
+	fmt.Printf("Top face vertices before translation: %v\n", top.Flatten())
 	top.Translate(normal.X*height, normal.Y*height, normal.Z*height)
+	fmt.Printf("Top face vertices after translation: %v\n", top.Flatten())
+
 	holes := make([]*Face3D, 0)
 	if addHoles {
 		for _, f := range n.Inner {
 			hole := f.Copy()
+			fmt.Printf("Hole vertices before translation: %v\n", hole.Flatten())
 			hole.Translate(normal.X*height, normal.Y*height, normal.Z*height)
+			fmt.Printf("Hole vertices after translation: %v\n", hole.Flatten())
 			holes = append(holes, hole)
 		}
 	}
@@ -1320,19 +1330,14 @@ func extrude(n *Node, faces []*Face3D, height float64, addHoles bool, tags ...st
 				v2,
 				v1,
 			}
-			if height < 0 {
-				vertices = []*Vertex3D{
-					v1,
-					v2,
-					topV2,
-					topV1,
-				}
-			}
+			fmt.Printf("Side face vertices before flipping or adding: %v\n", vertices)
+
 			sideFace := &Face3D{
 				Vertices: vertices,
 			}
 			if k != 0 {
 				sideFace.Flip()
+				fmt.Printf("Side face vertices after flipping: %v\n", sideFace.Flatten())
 			}
 			newNode := NewTaggedNode(getTag(i+1, tags), sideFace)
 			cur.Next = newNode
