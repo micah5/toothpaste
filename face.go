@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"github.com/micah5/earcut-3d"
 	"github.com/micah5/exhaustive-fitter"
-	"gonum.org/v1/gonum/mat"
-	"gonum.org/v1/gonum/spatial/r3"
 	"math"
 )
 
@@ -286,42 +284,41 @@ func NewFace3D(vertices ...float64) *Face3D {
 	}
 }
 
+// Normal calculates the normal vector for the Face3D using all vertices
 func (f *Face3D) Normal() *Vertex3D {
-	if len(f.Vertices) < 3 {
+	vertexCount := len(f.Vertices)
+	if vertexCount < 3 {
 		// Not enough vertices to define a plane
 		return NewVertex3D(0, 0, 0)
 	}
 
-	// Use the first three vertices to define two vectors in the plane of the face
-	v1 := f.Vertices[0]
-	v2 := f.Vertices[1]
-	v3 := f.Vertices[2]
+	// Calculate the centroid of the face
+	centroid := NewVertex3D(0, 0, 0)
+	for _, vertex := range f.Vertices {
+		centroid = centroid.Add(vertex)
+	}
+	centroid.X /= float64(vertexCount)
+	centroid.Y /= float64(vertexCount)
+	centroid.Z /= float64(vertexCount)
 
-	// Vector from v1 to v2
-	vector1 := NewVertex3D(v2.X-v1.X, v2.Y-v1.Y, v2.Z-v1.Z)
+	// Initialize the normal vector
+	normal := NewVertex3D(0, 0, 0)
 
-	// Vector from v1 to v3
-	vector2 := NewVertex3D(v3.X-v1.X, v3.Y-v1.Y, v3.Z-v1.Z)
+	// Iterate over each edge and compute the partial normal
+	for i := 0; i < vertexCount; i++ {
+		currentVertex := f.Vertices[i]
+		nextVertex := f.Vertices[(i+1)%vertexCount] // Wrap-around
 
-	// Cross product of vector1 and vector2
-	normal := NewVertex3D(
-		vector1.Y*vector2.Z-vector1.Z*vector2.Y,
-		vector1.Z*vector2.X-vector1.X*vector2.Z,
-		vector1.X*vector2.Y-vector1.Y*vector2.X,
-	)
+		// Edge vector and vector from centroid to current vertex
+		edgeVector := nextVertex.Subtract(currentVertex)
+		centroidVector := currentVertex.Subtract(centroid)
 
-	// Normalize the normal vector
-	length := math.Sqrt(normal.X*normal.X + normal.Y*normal.Y + normal.Z*normal.Z)
-	if length == 0 {
-		// Avoid division by zero
-		return NewVertex3D(0, 0, 0)
+		// Update the normal with the cross product of centroidVector and edgeVector
+		normal = normal.Add(centroidVector.Cross(edgeVector))
 	}
 
-	normal.X /= length
-	normal.Y /= length
-	normal.Z /= length
-
-	return normal
+	// Normalize the normal vector
+	return normal.Normalize()
 }
 
 func (f *Face3D) Centroid() *Vertex3D {
@@ -520,54 +517,6 @@ func (f *Face3D) Flip() {
 	// Reverse the order of the entire vertices slice to flip the face
 	for i, j := 0, len(f.Vertices)-1; i < j; i, j = i+1, j-1 {
 		f.Vertices[i], f.Vertices[j] = f.Vertices[j], f.Vertices[i]
-	}
-}
-
-func (face *Face3D) Correct() {
-	center := face.Centroid()
-
-	// Build the matrix A for SVD
-	rows := len(face.Vertices)
-	var data []float64
-	for _, vertex := range face.Vertices {
-		data = append(data, vertex.X-center.X, vertex.Y-center.Y, vertex.Z-center.Z)
-	}
-	A := mat.NewDense(rows, 3, data)
-
-	// Perform SVD, specifying the kind of matrix to compute
-	var svd mat.SVD
-	ok := svd.Factorize(A, mat.SVDThin) // Use SVDFull or SVDThin as appropriate
-	if !ok {
-		fmt.Println("SVD factorization failed")
-		return
-	}
-
-	// The normal to the best-fit plane is the last column of V (from the SVD of A)
-	var V mat.Dense
-	svd.VTo(&V)
-	normal := r3.Vec{X: V.At(0, 2), Y: V.At(1, 2), Z: V.At(2, 2)}
-
-	// Project vertices onto the best-fit plane
-	for _, vertex := range face.Vertices {
-		offset := r3.Dot(normal, r3.Vec{X: vertex.X - center.X, Y: vertex.Y - center.Y, Z: vertex.Z - center.Z})
-		vertex.X -= offset * normal.X
-		vertex.Y -= offset * normal.Y
-		vertex.Z -= offset * normal.Z
-	}
-
-	// Ensure consistent vertex ordering by checking the direction of the normal
-	// This is a simplified check and might need to be adjusted based on the face's orientation and desired winding order
-	v0 := face.Vertices[0]
-	v1 := face.Vertices[1]
-	v2 := face.Vertices[2]
-	edge1 := r3.Vec{X: v1.X - v0.X, Y: v1.Y - v0.Y, Z: v1.Z - v0.Z}
-	edge2 := r3.Vec{X: v2.X - v1.X, Y: v2.Y - v1.Y, Z: v2.Z - v1.Z}
-	faceNormal := r3.Cross(edge1, edge2)
-	if r3.Dot(faceNormal, normal) < 0 {
-		// Reverse the order of vertices if the face normal and the best-fit plane normal point in opposite directions
-		for i, j := 0, len(face.Vertices)-1; i < j; i, j = i+1, j-1 {
-			face.Vertices[i], face.Vertices[j] = face.Vertices[j], face.Vertices[i]
-		}
 	}
 }
 

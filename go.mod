@@ -5,7 +5,6 @@ go 1.20
 require (
 	github.com/micah5/earcut-3d v1.3.2
 	github.com/micah5/exhaustive-fitter v1.0.0
-	gonum.org/v1/gonum v0.14.0
 )
 
 require (
@@ -21,5 +20,6 @@ require (
 	golang.org/x/exp v0.0.0-20240213143201-ec583247a57a // indirect
 	golang.org/x/image v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
+	gonum.org/v1/gonum v0.14.0 // indirect
 	gonum.org/v1/plot v0.14.0 // indirect
 )

@@ -443,13 +443,6 @@ func (n *Node) Flip() {
 	}
 }
 
-func (n *Node) Correct() {
-	faces := n.Faces()
-	for _, f := range faces {
-		f.Correct()
-	}
-}
-
 func (n *Node) AddHoles(holes2D ...*Face2D) {
 	holes3D := make([]*Face3D, len(holes2D))
 	for i, h := range holes2D {

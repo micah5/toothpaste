@@ -137,10 +137,14 @@ func (v *Vertex3D) Translate(x, y, z float64) {
 	v.Z += z
 }
 
-func (v *Vertex3D) Subtract(v2 *Vertex3D) {
-	v.X -= v2.X
-	v.Y -= v2.Y
-	v.Z -= v2.Z
+// Add adds two Vertex3D objects
+func (v *Vertex3D) Add(other *Vertex3D) *Vertex3D {
+	return NewVertex3D(v.X+other.X, v.Y+other.Y, v.Z+other.Z)
+}
+
+// Sub subtracts two Vertex3D objects
+func (v *Vertex3D) Subtract(other *Vertex3D) *Vertex3D {
+	return NewVertex3D(v.X-other.X, v.Y-other.Y, v.Z-other.Z)
 }
 
 func (v *Vertex3D) Scale(x, y, z float64) {
@@ -166,13 +170,18 @@ func (v *Vertex3D) Mirror(axis Axis) {
 	}
 }
 
-func (v *Vertex3D) Normalize() Vertex3D {
-	mag := math.Sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z)
-	return Vertex3D{
-		X: v.X / mag,
-		Y: v.Y / mag,
-		Z: v.Z / mag,
+// Norm calculates the Euclidean norm of a Vertex3D
+func (v *Vertex3D) Norm() float64 {
+	return math.Sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z)
+}
+
+// Normalize normalizes the Vertex3D to a unit vector
+func (v *Vertex3D) Normalize() *Vertex3D {
+	norm := v.Norm()
+	if norm == 0 {
+		return NewVertex3D(0, 0, 0) // Avoid division by zero
 	}
+	return NewVertex3D(v.X/norm, v.Y/norm, v.Z/norm)
 }
 
 func (v *Vertex3D) Rotate(deg float64, axis Axis) {
@@ -207,12 +216,13 @@ func (v *Vertex3D) Angle(v2 *Vertex3D) float64 {
 	return math.Atan2(v2.Y-v.Y, v2.X-v.X) * (180 / math.Pi)
 }
 
-func (v *Vertex3D) Cross(v2 *Vertex3D) *Vertex3D {
-	return &Vertex3D{
-		X: v.Y*v2.Z - v.Z*v2.Y,
-		Y: v.Z*v2.X - v.X*v2.Z,
-		Z: v.X*v2.Y - v.Y*v2.X,
-	}
+// Cross calculates the cross product of two Vertex3D objects
+func (v *Vertex3D) Cross(other *Vertex3D) *Vertex3D {
+	return NewVertex3D(
+		v.Y*other.Z-v.Z*other.Y,
+		v.Z*other.X-v.X*other.Z,
+		v.X*other.Y-v.Y*other.X,
+	)
 }
 
 func (v *Vertex3D) Dot(v2 *Vertex3D) float64 {
