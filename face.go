@@ -284,25 +284,41 @@ func NewFace3D(vertices ...float64) *Face3D {
 }
 
 func (f *Face3D) Normal() *Vertex3D {
-	var normal Vertex3D
-
-	v := f.Vertices
-	for i := range v {
-		v1 := *v[i]
-		v2 := *v[(i+1)%len(v)]
-
-		normal.X += (v1.Y - v2.Y) * (v1.Z + v2.Z)
-		normal.Y += (v1.Z - v2.Z) * (v1.X + v2.X)
-		normal.Z += (v1.X - v2.X) * (v1.Y + v2.Y)
+	if len(f.Vertices) < 3 {
+		// Not enough vertices to define a plane
+		return NewVertex3D(0, 0, 0)
 	}
+
+	// Use the first three vertices to define two vectors in the plane of the face
+	v1 := f.Vertices[0]
+	v2 := f.Vertices[1]
+	v3 := f.Vertices[2]
+
+	// Vector from v1 to v2
+	vector1 := NewVertex3D(v2.X-v1.X, v2.Y-v1.Y, v2.Z-v1.Z)
+
+	// Vector from v1 to v3
+	vector2 := NewVertex3D(v3.X-v1.X, v3.Y-v1.Y, v3.Z-v1.Z)
+
+	// Cross product of vector1 and vector2
+	normal := NewVertex3D(
+		vector1.Y*vector2.Z-vector1.Z*vector2.Y,
+		vector1.Z*vector2.X-vector1.X*vector2.Z,
+		vector1.X*vector2.Y-vector1.Y*vector2.X,
+	)
 
 	// Normalize the normal vector
 	length := math.Sqrt(normal.X*normal.X + normal.Y*normal.Y + normal.Z*normal.Z)
+	if length == 0 {
+		// Avoid division by zero
+		return NewVertex3D(0, 0, 0)
+	}
+
 	normal.X /= length
 	normal.Y /= length
 	normal.Z /= length
 
-	return &normal
+	return normal
 }
 
 func (f *Face3D) Centroid() *Vertex3D {
