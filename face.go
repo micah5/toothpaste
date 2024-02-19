@@ -498,18 +498,10 @@ func (f *Face3D) ContainsExact(vertex *Vertex3D) bool {
 }
 
 func (f *Face3D) Flip() {
-	// take out 2 halves of the face
-	// and reverse them
-	// then put them back together
-	half1 := f.Vertices[:len(f.Vertices)/2]
-	half2 := f.Vertices[len(f.Vertices)/2:]
-	for i := 0; i < len(half1)/2; i++ {
-		half1[i], half1[len(half1)-i-1] = half1[len(half1)-i-1], half1[i]
+	// Reverse the order of the entire vertices slice to flip the face
+	for i, j := 0, len(f.Vertices)-1; i < j; i, j = i+1, j-1 {
+		f.Vertices[i], f.Vertices[j] = f.Vertices[j], f.Vertices[i]
 	}
-	for i := 0; i < len(half2)/2; i++ {
-		half2[i], half2[len(half2)-i-1] = half2[len(half2)-i-1], half2[i]
-	}
-	f.Vertices = append(half1, half2...)
 }
 
 func (f *Face3D) ShareVertices(other *Face3D) bool {
