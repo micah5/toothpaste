@@ -139,12 +139,16 @@ func (v *Vertex3D) Translate(x, y, z float64) {
 
 // Add adds two Vertex3D objects
 func (v *Vertex3D) Add(other *Vertex3D) *Vertex3D {
-	return NewVertex3D(v.X+other.X, v.Y+other.Y, v.Z+other.Z)
+	v.X += other.X
+	v.Y += other.Y
+	v.Z += other.Z
 }
 
 // Sub subtracts two Vertex3D objects
 func (v *Vertex3D) Subtract(other *Vertex3D) *Vertex3D {
-	return NewVertex3D(v.X-other.X, v.Y-other.Y, v.Z-other.Z)
+	v.X -= other.X
+	v.Y -= other.Y
+	v.Z -= other.Z
 }
 
 func (v *Vertex3D) Scale(x, y, z float64) {
@@ -235,4 +239,8 @@ func (v *Vertex3D) String() string {
 
 func (v *Vertex3D) Equals(v2 *Vertex3D) bool {
 	return v.X == v2.X && v.Y == v2.Y && v.Z == v2.Z && v.U == v2.U && v.V == v2.V
+}
+
+func (v *Vertex3D) Negate() *Vertex3D {
+	return NewVertex3D(-v.X, -v.Y, -v.Z)
 }
