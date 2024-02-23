@@ -28,6 +28,14 @@ func NewVertex2DWithUV(x, y, u, v float64) *Vertex2D {
 	return &Vertex2D{x, y, u, v, ""}
 }
 
+func (v *Vertex2D) Add(other *Vertex2D) *Vertex2D {
+	return NewVertex2D(v.X+other.X, v.Y+other.Y)
+}
+
+func (v *Vertex2D) Subtract(other *Vertex2D) *Vertex2D {
+	return NewVertex2D(v.X-other.X, v.Y-other.Y)
+}
+
 func (v *Vertex2D) Copy() *Vertex2D {
 	return &Vertex2D{v.X, v.Y, v.U, v.V, v.Label}
 }
