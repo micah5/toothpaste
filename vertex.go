@@ -139,16 +139,12 @@ func (v *Vertex3D) Translate(x, y, z float64) {
 
 // Add adds two Vertex3D objects
 func (v *Vertex3D) Add(other *Vertex3D) *Vertex3D {
-	v.X += other.X
-	v.Y += other.Y
-	v.Z += other.Z
+	return NewVertex3D(v.X+other.X, v.Y+other.Y, v.Z+other.Z)
 }
 
 // Sub subtracts two Vertex3D objects
 func (v *Vertex3D) Subtract(other *Vertex3D) *Vertex3D {
-	v.X -= other.X
-	v.Y -= other.Y
-	v.Z -= other.Z
+	return NewVertex3D(v.X-other.X, v.Y-other.Y, v.Z-other.Z)
 }
 
 func (v *Vertex3D) Scale(x, y, z float64) {
@@ -176,7 +172,7 @@ func (v *Vertex3D) Mirror(axis Axis) {
 
 // Norm calculates the Euclidean norm of a Vertex3D
 func (v *Vertex3D) Norm() float64 {
-	return math.Sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z)
+	return math.Sqrt(v.Dot(v))
 }
 
 // Normalize normalizes the Vertex3D to a unit vector
