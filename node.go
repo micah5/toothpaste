@@ -1222,7 +1222,11 @@ func (ns Nodes) JoinIfWithin(distance float64) {
 	ns.LinkVertices()
 }
 
-func (ns Nodes) LinkVertices() {
+func (ns Nodes) LinkVertices(_setEqual ...bool) {
+	setEqual := true
+	if len(_setEqual) > 0 {
+		setEqual = _setEqual[0]
+	}
 	uniques := ns.UniqueVertices()
 	for _, node := range ns {
 		// check if vertices are in uniques
@@ -1232,7 +1236,13 @@ func (ns Nodes) LinkVertices() {
 			for i, v := range face.Vertices {
 				for _, v2 := range uniques {
 					if v.Equals(v2) {
-						face.Vertices[i] = v2
+						if setEqual {
+							face.Vertices[i] = v2
+						} else {
+							face.Vertices[i].X = v2.X
+							face.Vertices[i].Y = v2.Y
+							face.Vertices[i].Z = v2.Z
+						}
 					}
 				}
 			}
