@@ -140,7 +140,6 @@ func (v *Vertex3D) Distance(v2 *Vertex3D) float64 {
 }
 
 func (v *Vertex3D) Translate(x, y, z float64) {
-	fmt.Printf("Translating %p by %f, %f, %f\n", v, x, y, z)
 	v.X += x
 	v.Y += y
 	v.Z += z
