@@ -964,6 +964,15 @@ func (ns Nodes) Height() float64 {
 	return h
 }
 
+func (ns Nodes) Contains(node *Node) bool {
+	for _, n := range ns {
+		if n == node {
+			return true
+		}
+	}
+	return false
+}
+
 func (ns Nodes) Filter(tags ...string) Nodes {
 	var nodes Nodes
 	for _, node := range ns {
