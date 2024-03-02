@@ -453,6 +453,23 @@ func (n *Node) AddHoles(holes2D ...*Face2D) {
 	n.Inner = append(n.Inner, holes3D...)
 }
 
+func (n *Node) AddHolesMiddleFixed(holes2D ...*Face2D) {
+	holes3D := make([]*Face3D, len(holes2D))
+	for i, f2D := range holes2D {
+		holeW, holeH := f2D.Width(), f2D.Height()
+		nodeW, nodeH := n.Outer.Width(), n.Outer.Height()
+		x := (nodeW - holeW) / 2.0
+		y := (nodeH - holeH) / 2.0
+		wPerc, hPerc := holeW/nodeW, holeH/nodeH
+		xPerc, yPerc := x/nodeW, y/nodeH
+		tmp := Square(wPerc, hPerc)
+		tmp.Translate(xPerc, yPerc)
+		tmp.Fit3D(n.Outer)
+		holes3D[i] = tmp.To3D(true)
+	}
+	n.Inner = append(n.Inner, holes3D...)
+}
+
 func (n *Node) DetachHoles() Nodes {
 	tmpFaces := make([]*Face3D, len(n.Inner))
 	for i, f := range n.Inner {
