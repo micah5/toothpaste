@@ -1158,15 +1158,19 @@ func (ns Nodes) Detach() Nodes {
 	return nodes
 }
 
-func (ns Nodes) DetachVertices() {
+func (ns Nodes) DetachVertices() map[*Vertex3D]*Vertex3D {
+	vertexMap := make(map[*Vertex3D]*Vertex3D)
 	for _, node := range ns {
 		faces := node.Faces()
 		for _, face := range faces {
 			for i, vertex := range face.Vertices {
+				oldVertex := vertex
 				face.Vertices[i] = vertex.Copy()
+				vertexMap[oldVertex] = face.Vertices[i]
 			}
 		}
 	}
+	return vertexMap
 }
 
 func (ns Nodes) ExtrudeDrop(height float64, tags ...string) Nodes {
