@@ -1165,8 +1165,9 @@ func (ns Nodes) DetachVertices() map[*Vertex3D]*Vertex3D {
 		for _, face := range faces {
 			for i, vertex := range face.Vertices {
 				oldVertex := vertex
-				face.Vertices[i] = vertex.Copy()
-				vertexMap[face.Vertices[i]] = oldVertex
+				newVertex := vertex.Copy()
+				face.Vertices[i] = newVertex
+				vertexMap[newVertex] = oldVertex
 			}
 		}
 	}
