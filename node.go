@@ -16,15 +16,16 @@ type Node struct {
 	Prev         *Node
 	Next         *Node
 	ImageTexture bool
+	Detached     bool
 	Meta         map[string]interface{}
 }
 
 func NewNode(outer *Face3D, inner ...*Face3D) *Node {
-	return &Node{"", outer, inner, nil, nil, false, nil}
+	return &Node{"", outer, inner, nil, nil, false, false, nil}
 }
 
 func NewTaggedNode(tag string, outer *Face3D, inner ...*Face3D) *Node {
-	return &Node{tag, outer, inner, nil, nil, false, nil}
+	return &Node{tag, outer, inner, nil, nil, false, false, nil}
 }
 
 func NewSliceNode(outers ...*Face3D) *Node {
@@ -219,6 +220,7 @@ func (n *Node) Detach() *Node {
 	tmp := n.Copy()
 	last.Next = tmp
 	tmp.Prev = last
+	tmp.Detached = true
 	return tmp
 }
 
@@ -234,6 +236,7 @@ func (n *Node) DetachVertices() {
 		}
 		face.Vertices = newVertices
 	}
+	n.Detached = true
 }
 
 func (n *Node) Copy() *Node {
@@ -497,6 +500,7 @@ func (n *Node) DetachHoles() Nodes {
 	retNodes := make(Nodes, 0)
 	for _, f := range tmpFaces {
 		_n := NewNode(f)
+		_n.Detached = true
 		n.Attach(_n)
 		retNodes = append(retNodes, _n)
 	}
@@ -509,6 +513,7 @@ func (n *Node) DetachHole(index int) *Node {
 		tmpFaces[i] = f.Copy()
 	}
 	_n := NewNode(tmpFaces[index])
+	_n.Detached = true
 	n.Attach(_n)
 	return _n
 }
@@ -908,10 +913,30 @@ func (ns Nodes) Mirror(axis Axis) {
 	}
 }
 
+func (ns Nodes) FindDetached() (Nodes, Nodes) {
+	var attached, detached Nodes
+	for _, node := range ns {
+		if node.Detached {
+			detached = append(detached, node)
+		} else {
+			attached = append(attached, node)
+		}
+	}
+	return attached, detached
+}
+
 func (ns Nodes) Translate(x, y, z float64) {
-	uniques := ns.UniqueVertices()
+	attached, detached := ns.FindDetached()
+
+	// Handle attached
+	uniques := attached.UniqueVertices()
 	for _, v := range uniques {
 		v.Translate(x, y, z)
+	}
+
+	// Handle detached
+	for _, node := range detached {
+		node.Translate(x, y, z)
 	}
 }
 
@@ -926,12 +951,20 @@ func (ns Nodes) Mul(magnitude float64) {
 }
 
 func (ns Nodes) Scale(x, y, z float64) {
-	uniques := ns.UniqueVertices()
+	attached, detached := ns.FindDetached()
+
+	// Handle attached
+	uniques := attached.UniqueVertices()
 	cen := ns.Centroid()
 	for _, v := range uniques {
 		v.Translate(-cen.X, -cen.Y, -cen.Z)
 		v.Scale(x, y, z)
 		v.Translate(cen.X, cen.Y, cen.Z)
+	}
+
+	// Handle detached
+	for _, node := range detached {
+		node.Scale(x, y, z)
 	}
 }
 
@@ -943,9 +976,17 @@ func (ns Nodes) ScaleFixed(x, y, z float64) {
 }
 
 func (ns Nodes) Rotate(deg float64, axis Axis) {
-	uniques := ns.UniqueVertices()
+	attached, detached := ns.FindDetached()
+
+	// Handle attached
+	uniques := attached.UniqueVertices()
 	for _, v := range uniques {
 		v.Rotate(deg, axis)
+	}
+
+	// Handle detached
+	for _, node := range detached {
+		node.Rotate(deg, axis)
 	}
 }
 
@@ -1170,6 +1211,7 @@ func (ns Nodes) DetachVertices() map[*Vertex3D]*Vertex3D {
 				vertexMap[newVertex] = oldVertex
 			}
 		}
+		node.Detached = true
 	}
 	return vertexMap
 }
