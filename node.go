@@ -986,7 +986,7 @@ func (ns Nodes) Rotate(deg float64, axis Axis) {
 
 	// Handle detached
 	for _, node := range detached {
-		node.Rotate(deg, axis)
+		node.RotateFixed(deg, axis)
 	}
 }
 
