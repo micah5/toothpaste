@@ -466,7 +466,8 @@ func (n *Node) AddHolesFixed(holes2D ...*Face2D) {
 		nodeMinX, _ := n.Outer.MinMax(XAxis)
 		nodeMinY, _ := n.Outer.MinMax(YAxis)
 		x := (holeM.X - nodeMinX) / nodeW
-		y := (nodeH - (holeM.Y - nodeMinY)) / nodeH
+		y := (holeM.Y - nodeMinY) / nodeH
+		y = 1 - y
 		tmp := Square(wPerc, hPerc)
 		tmp.Translate(x, y)
 		tmp.Fit3D(n.Outer)
